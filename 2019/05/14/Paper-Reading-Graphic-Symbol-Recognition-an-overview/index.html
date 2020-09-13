@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+
+<html class="theme-next gemini use-motion" lang="en">
+<head><meta name="generator" content="Hexo 3.8.0">
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2">
+
+<link rel="stylesheet" href="/css/main.css?v=7.1.1">
+
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png?v=7.1.1">
+
+
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png?v=7.1.1">
+
+
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png?v=7.1.1">
+
+
+  <link rel="mask-icon" href="/images/logo.svg?v=7.1.1" color="#222">
+
+
+
+
+
+
+
+<script id="hexo.configurations">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    root: '/',
+    scheme: 'Gemini',
+    version: '7.1.1',
+    sidebar: {"position":"left","display":"post","offset":12,"onmobile":false,"dimmer":false},
+    back2top: true,
+    back2top_sidebar: false,
+    fancybox: false,
+    fastclick: false,
+    lazyload: false,
+    tabs: true,
+    motion: {"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},
+    algolia: {
+      applicationID: '',
+      apiKey: '',
+      indexName: '',
+      hits: {"per_page":10},
+      labels: {"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}
+    }
+  };
+</script>
+
+
+  
+
+
+
+
+  <meta name="description" content="论文《Graphic Symbol Recognition:An Overview》摘要 Abstract： Symbol recognition is one of the primary stages of any graphics recognition system. This paper reviews the current state of the art in graphic sy">
+<meta name="keywords" content="paper,graphic symbol recognition">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Paper Reading:Graphic Symbol Recognition_an overview">
+<meta property="og:url" content="http://yoursite.com/2019/05/14/Paper-Reading-Graphic-Symbol-Recognition-an-overview/index.html">
+<meta property="og:site_name" content="cFireworks">
+<meta property="og:description" content="论文《Graphic Symbol Recognition:An Overview》摘要 Abstract： Symbol recognition is one of the primary stages of any graphics recognition system. This paper reviews the current state of the art in graphic sy">
+<meta property="og:locale" content="en">
+<meta property="og:updated_time" content="2020-09-13T06:15:14.383Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Paper Reading:Graphic Symbol Recognition_an overview">
+<meta name="twitter:description" content="论文《Graphic Symbol Recognition:An Overview》摘要 Abstract： Symbol recognition is one of the primary stages of any graphics recognition system. This paper reviews the current state of the art in graphic sy">
+
+
+
+
+
+  
+  
+  <link rel="canonical" href="http://yoursite.com/2019/05/14/Paper-Reading-Graphic-Symbol-Recognition-an-overview/">
+
+
+
+<script id="page.configurations">
+  CONFIG.page = {
+    sidebar: "",
+  };
+</script>
+
+  <title>Paper Reading:Graphic Symbol Recognition_an overview | cFireworks</title>
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .motion-element,
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-title { opacity: initial; }
+
+  .use-motion .logo,
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript><!-- hexo-inject:begin --><!-- hexo-inject:end -->
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="en">
+
+  
+  
+    
+  
+
+  <!-- hexo-inject:begin --><!-- hexo-inject:end --><div class="container sidebar-position-left page-post-detail">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-wrapper">
+  <div class="site-meta">
+    
+
+    <div class="custom-logo-site-title">
+      <a href="/" class="brand" rel="start">
+        <span class="logo-line-before"><i></i></span>
+        <span class="site-title">cFireworks</span>
+        <span class="logo-line-after"><i></i></span>
+      </a>
+    </div>
+    
+    
+  </div>
+
+  <div class="site-nav-toggle">
+    <button aria-label="Toggle navigation bar">
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+      <span class="btn-bar"></span>
+    </button>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  
+    <ul id="menu" class="menu">
+      
+        
+        
+        
+          
+          <li class="menu-item menu-item-home">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i> <br>Home</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-about">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/about/" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i> <br>About</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-tags">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/tags/" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i> <br>Tags</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-categories">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/categories/" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i> <br>Categories</a>
+
+  </li>
+        
+        
+        
+          
+          <li class="menu-item menu-item-archives">
+
+    
+    
+    
+      
+    
+
+    
+
+    <a href="/archives/" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i> <br>Archives</a>
+
+  </li>
+
+      
+      
+    </ul>
+  
+
+  
+
+  
+</nav>
+
+
+
+  
+
+
+
+</div>
+    </header>
+
+    
+
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+            
+
+          
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+
+  
+  
+  
+
+  
+
+  <article class="post post-type-normal" itemscope itemtype="http://schema.org/Article">
+  
+  
+  
+  <div class="post-block">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2019/05/14/Paper-Reading-Graphic-Symbol-Recognition-an-overview/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="name" content="Joe">
+      <meta itemprop="description" content>
+      <meta itemprop="image" content="/images/avatar.gif">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="cFireworks">
+    </span>
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">Paper Reading:Graphic Symbol Recognition_an overview
+
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+
+            
+            
+            
+
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-calendar-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Posted on</span>
+              
+
+              
+                
+              
+
+              <time title="Created: 2019-05-14 21:27:19" itemprop="dateCreated datePublished" datetime="2019-05-14T21:27:19+08:00">2019-05-14</time>
+            
+
+            
+              
+
+              
+                
+                <span class="post-meta-divider">|</span>
+                
+
+                <span class="post-meta-item-icon">
+                  <i class="fa fa-calendar-check-o"></i>
+                </span>
+                
+                  <span class="post-meta-item-text">Edited on</span>
+                
+                <time title="Modified: 2020-09-13 14:15:14" itemprop="dateModified" datetime="2020-09-13T14:15:14+08:00">2020-09-13</time>
+              
+            
+          </span>
+
+          
+            <span class="post-category">
+            
+              <span class="post-meta-divider">|</span>
+            
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              
+                <span class="post-meta-item-text">In</span>
+              
+              
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/Paper/" itemprop="url" rel="index"><span itemprop="name">Paper</span></a></span>
+
+                
+                
+              
+            </span>
+          
+
+          
+            
+            
+          
+
+          
+          
+            <span id="/2019/05/14/Paper-Reading-Graphic-Symbol-Recognition-an-overview/" class="leancloud_visitors" data-flag-title="Paper Reading:Graphic Symbol Recognition_an overview">
+              <span class="post-meta-divider">|</span>
+              <span class="post-meta-item-icon">
+                <i class="fa fa-eye"></i>
+              </span>
+              
+                <span class="post-meta-item-text">Views: </span>
+              
+                <span class="leancloud-visitors-count"></span>
+            </span>
+          
+
+          
+
+          
+
+          
+
+        </div>
+      </header>
+    
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h1 id="论文《Graphic-Symbol-Recognition-An-Overview》"><a href="#论文《Graphic-Symbol-Recognition-An-Overview》" class="headerlink" title="论文《Graphic Symbol Recognition:An Overview》"></a>论文《Graphic Symbol Recognition:An Overview》</h1><h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><blockquote>
+<p><strong>Abstract：</strong> Symbol recognition is one of the primary stages of any graphics recognition system. This paper reviews the current state of the art in graphic symbol recognition and raises some open issues that need further investigation. Work on symbol recognition tends to be highly application specific. Therefore, this review presents the symbol recognition methods in the context of specific applications.</p>
+</blockquote>
+<p>本篇论文是1998年发表在GREC上的一篇综述文章，介绍了当时为止<code>符号检测</code>领域的研究情况，并提出了待研究的问题。</p>
+<h2 id="一、介绍"><a href="#一、介绍" class="headerlink" title="一、介绍"></a>一、介绍</h2><blockquote>
+<p>In order to distinguish symbol recognition from character recognition, we use the term ‘<strong>graphic symbol recognition</strong>‘.</p>
+</blockquote>
+<p>该论文将符号识别问题与字符识别问题进行区分，定义此类问题为图像符号识别。</p>
+<blockquote>
+<p>However, to provide a frame of reference for symbol recognition, we briefly discuss the various stages in a diagram/drawing recognition system.<br><em>The first phase</em> of any such system is the image preprocessing step.<br><em>The second stage</em> performs detection of graphical primitives such as lines, arcs, text regions, etc.<br><em>The syntactic phase</em> imposes a grammar on the recognized graphical symbols and primitives. </p>
+</blockquote>
+<p>在图像识别系统中，通常分为三个步骤：</p>
+<ul>
+<li>图像预处理步骤，包括噪声去除、二值化、细化处理等</li>
+<li>图元的检测步骤，例如线、圆弧、文字区域的检测</li>
+<li>语义理解部分，从符号和图元中解析出有意义的信息（分类等）</li>
+</ul>
+<h2 id="二、应用和方法"><a href="#二、应用和方法" class="headerlink" title="二、应用和方法"></a>二、应用和方法</h2><h3 id="2-1-电路图"><a href="#2-1-电路图" class="headerlink" title="2.1 电路图"></a>2.1 电路图</h3><blockquote>
+<p>Electrical circuits are typically composed of <strong>symbols</strong> , <strong>interconnections</strong> , and <strong>annotations</strong>. </p>
+</blockquote>
+<p>电路图主要包含三个部分：<code>符号</code>、<code>连接</code>、<code>标注</code></p>
+<h3 id="论文一：-“An-automatic-circuit-diagram-reader-with-loop-structure-based-symbol-recognition”"><a href="#论文一：-“An-automatic-circuit-diagram-reader-with-loop-structure-based-symbol-recognition”" class="headerlink" title="论文一： “An automatic circuit diagram reader with loop-structure-based symbol recognition”"></a>论文一： <em>“An automatic circuit diagram reader with loop-structure-based symbol recognition”</em></h3><blockquote>
+<p>Okazaki et al. describe a logic diagram reader that recognizes loop structured symbols by symbol segmentation and identification.<br><strong>Key words: loop structured symbols</strong>    </p>
+</blockquote>
+<h4 id="1）简介"><a href="#1）简介" class="headerlink" title="1）简介"></a>1）简介</h4><p>该论文提出了一种方法，用于对VLSI-CAD输入数据中的逻辑电路图进行识别，逻辑电路图大多具有环结构，本论文首先对环状符号进行识别，用以对候选环进行检测。本文处理的环状符号具有以下属性：</p>
+<ul>
+<li>符号由一个或多个基本环图元构成（基本环图元是没有子环的环状符号）</li>
+<li>符号的尺寸、方向和位置是不固定的</li>
+<li>符号之间通过连接线连接，且分布非常密集</li>
+<li>许多符号都比较相似</li>
+<li>新图元需要被使用者添加</li>
+</ul>
+<p>检测候选环之后，对环状符号进行识别，这是一个two-stage识别过程。第一步是符号分割（<code>symbol segmentation</code>），先对候选环的合理性进行确定并分割出相应区域。第二步是符号识别（<code>symbol identification</code>），对分割出的区域进行分析得出结论。符号分割和符号识别都由决策树进行控制。    </p>
+<h4 id="2）基于环结构的符号分割"><a href="#2）基于环结构的符号分割" class="headerlink" title="2）基于环结构的符号分割"></a>2）基于环结构的符号分割</h4><p>独立环检测步骤，一个独立的环可以通过连通分量标签（<code>component labeling</code>）的方法找到。之后是分割出最小分析区域（minimum region for analysis, <code>MRA</code>），MRA中包含着识别符号的所有组成部分，但区域最小。可以说是从候选基本环状图元扩大到包含符号的所有组件，但又不至于更大到包含多个符号。<br>MRA的计算策略如下：</p>
+<ul>
+<li>符号集合是预定义的，模板符号的尺寸固定，最多有8个实现，包括四个方向和镜像表示</li>
+<li>除了无环符号，所有符号都具有某个特征环（<code>characteristic loop</code>），即不同符号的公共基本环图元</li>
+<li>所有符号具有相应的符号窗口（<code>symbol window</code>），是适应符号大小的矩形窗口</li>
+<li>定义特征环（<code>characteristic loop</code>）的中心为基点（<code>base point</code>）</li>
+<li>定义特征窗口（<code>characteristic window</code>）为所有包含该特征环的不同符号的符号窗口的合并</li>
+<li>有相同特征窗口的被归回中间类别（<code>intermediate categories</code>）</li>
+</ul>
+<p>根据一个候选环获得MRA，包括三个步骤：<br>Step 1 ：通过候选环形图提取8个特征</p>
+<ul>
+<li>Feature1：环形面积</li>
+<li>Feature2-5：四类mask patterns出现的数目，近似于四种斜率直线的长度</li>
+<li>Feature6：三分支节点的数量（假设图像是细化图像）</li>
+<li>Feature7-8：适应候选环大小的矩形宽、高</li>
+</ul>
+<p>Step 2 ：基于8个特征，使用决策树来确定候选环所属的中间类别以及方向<br>Step 3 ：根据上一步的中间类别结果和先验MRA信息确定MRA结果</p>
+<h4 id="3）基于环结构的启发式混合符号识别"><a href="#3）基于环结构的启发式混合符号识别" class="headerlink" title="3）基于环结构的启发式混合符号识别"></a>3）基于环结构的启发式混合符号识别</h4><p>符号识别步骤，在MRA和中间类别已知的情况下计算得到符号的具体类型。一个简单的符号识别方法是模板匹配（<code>template matching</code>），步骤如下：</p>
+<ul>
+<li>准备独立环状图作为图元模板（<code>primitive templates</code>），例如基本圆、三角、矩形。将图元模板分为两大类，一类是基类符号（<code>radical symbols</code>），另一类是辅助符号（<code>auxiliary symbols</code>）</li>
+<li>执行模板匹配，使用一个多步匹配过程的决策树。</li>
+</ul>
+<p>另一种模板匹配方法：<br>Step 1 ：从MRA中提取特征</p>
+<ul>
+<li>连接线的数量</li>
+<li>X方向和Y方向上的尖峰数量</li>
+<li>簇（<code>cluster</code>）数量及其集合特征</li>
+<li>several local features of the filled-hole image</li>
+</ul>
+<p>以一定的规则合并两种方法识别的结果。</p>
+<p>Step 2 ：根据以上特征从MRA中识别符号</p>
+<h4 id="4）字符识别、无环符号和矩形识别、线的分析"><a href="#4）字符识别、无环符号和矩形识别、线的分析" class="headerlink" title="4）字符识别、无环符号和矩形识别、线的分析"></a>4）字符识别、无环符号和矩形识别、线的分析</h4><hr>
+<h3 id="论文二：-“Recognizing-hand-written-electrical-circuit-symbols-with-attributed-graph-matching”"><a href="#论文二：-“Recognizing-hand-written-electrical-circuit-symbols-with-attributed-graph-matching”" class="headerlink" title="论文二： “Recognizing hand-written electrical circuit symbols with attributed graph matching”"></a>论文二： <em>“Recognizing hand-written electrical circuit symbols with attributed graph matching”</em></h3><blockquote>
+<p>Lee proposes a model based approach to electrical circuit symbol recognition. A hybrid representation of a symbol, called an attribute graph, incorporating structural and statistical features of the symbol, is used for symbol matching.<br><strong>Key words: attribute graph, incorporating structural, statistical features</strong></p>
+</blockquote>
+<h4 id="1）简介-1"><a href="#1）简介-1" class="headerlink" title="1）简介"></a>1）简介</h4><p>该论文提出一种检测手写电路图符号的方法，使用一种混合表示：属性图（<code>attributed graph</code> , <code>AG</code>），结合结构和统计特征的图像模式（<code>image patterns</code>）</p>
+<h4 id="2）属性图的构建"><a href="#2）属性图的构建" class="headerlink" title="2）属性图的构建"></a>2）属性图的构建</h4><p><strong>属性图表示的定义</strong><br>属性图中的属性是由在单像素宽度线表示的符号中段或顶点图元（<code>segment primitive</code> , <code>vertex primitive</code>）构成的局部结构的数值特征。对于段图元（<code>segment primitive</code>）， 长度、曲率、两端点是属性；对于顶点图元（<code>vertex primitive</code>），位置、类型（终点、拐点、连接点）、连接该顶点的段列表、连接该顶点的段的角度列表是属性。<br>根据以上属性还可以得到统计属性，对于段图元，这些属性包括数量、平均长度、长度的方差、平均曲率、曲率方差；对于顶点图元，这些属性包括统计数量、平均坐标位置、平均坐标位置方差和连接段的直方图。<br><strong>构建一个属性图</strong><br>Step 1 ：快速细化（<code>Fast skeletonization</code>）<br>在校正阴影和阈值分割（<em>Low-level image processing by max-min filters</em>）后，使用快速细化算法（<em>A Contour Processing Method for Fast Binary Neighborhood Operations</em>）获取符号图形的骨架。<br>Step 2 ：线跟踪和分段近似（<code>Line-tracking</code> , <code>piecewise segment approximation</code>）：<br>在细化图中，不同类型的像素点包括终点、拐点和连接点像素。线跟踪用于找到不同的骨架部分。 该骨架部分被近似为直线或是圆弧通过以下策略确定：</p>
+<ol>
+<li>The maximum distance is calculated between the part and the straight linesegment.</li>
+<li>When this distance exceeds a threshold dc, a circular line-segment is calculated through the endpoints of the skeleton part and the pixel in the middle of the part.</li>
+<li>The maximum distance between the circular line-segment and the skeleton<br>part is calculated.</li>
+<li>When this maximum distance is smaller than the one of the straight line<br>approximation, the circular approximation is used.</li>
+<li>When the maximum distance exceeds a threshold dmax , the skeleton part is split at the pixel of maximum distance to the straight line.</li>
+<li>Above five steps are repeated on both resulting parts until the dmax condition is satisfied.</li>
+</ol>
+<p>Step 3 ：错误纠正（<code>Error recovery</code>）：</p>
+<ol>
+<li>Two close end points within a threshold $d_{min}$ from each other are joined.</li>
+<li>All segments with at least one end point and shorter than a threshold $d_{min}$ are removed.</li>
+<li>All other segments shorter than a threshold $d_{min}$ are absorbed.</li>
+<li>End points within a distance $d_{min}$ from a straight or a circular line-segment are attached to it, resulting in a junction and the splitting of the straight or circular line-segment.</li>
+<li>Two close segments within a threshold $d_{min}$ from each other are joined.</li>
+<li>Corners between straight line-segments with an angle close to 1800 are deleted and the segments are joined.</li>
+<li>Small loops are deleted.</li>
+</ol>
+<h3 id="论文三：-“A-symbol-recognition-system”"><a href="#论文三：-“A-symbol-recognition-system”" class="headerlink" title="论文三： “A symbol recognition system”"></a>论文三： <em>“A symbol recognition system”</em></h3><blockquote>
+<p>Cheng et al. present a neural network based symbol recognition system for electrical drawings.<br><strong>Key words: neural network</strong></p>
+</blockquote>
+<h3 id="论文四：-“A-new-system-for-the-analysis-of-schematic-diagrams”"><a href="#论文四：-“A-new-system-for-the-analysis-of-schematic-diagrams”" class="headerlink" title="论文四： “A new system for the analysis of schematic diagrams”"></a>论文四： <em>“A new system for the analysis of schematic diagrams”</em></h3><blockquote>
+<p>Hamada proposes a schematic diagram interpretation system in which electrical symbol recognition and detection of connecting lines are interdependent.<br><strong>Key words: connecting lines</strong> </p>
+</blockquote>
+<h3 id="论文五：-“Recognition-of-logic-diagrams-by-identifying-loops-and-rectilinear-polylines”"><a href="#论文五：-“Recognition-of-logic-diagrams-by-identifying-loops-and-rectilinear-polylines”" class="headerlink" title="论文五： “Recognition of logic diagrams by identifying loops and rectilinear polylines”"></a>论文五： <em>“Recognition of logic diagrams by identifying loops and rectilinear polylines”</em></h3><blockquote>
+<p>Kim et al. propose a system to recognize logic diagrams by identifying loops and rectilinear polylines. Preprocessing is done to convert an image into its line skeleton description. The symbol feature set includes Fourier descriptors for loops and six-tuple line segment based moment invariants for symbols.<br><strong>Key words: loops, rectilinear polylines, line skeleton description</strong> </p>
+</blockquote>
+<h2 id="三、Open-Issues"><a href="#三、Open-Issues" class="headerlink" title="三、Open Issues"></a>三、Open Issues</h2><blockquote>
+<ul>
+<li>Graphic symbol recognition seems to be trapped in a low level recognition mode. Very little work has been done on trying to correct the errors made by symbol segmenting and matching techniques using feedback from the syntactic or semantic stages of a drawing or diagram recognition system.    </li>
+<li>Most symbol recognition methods do not address the scalability issue. How is the cost of symbol representation, and the computational cost of recognition, affected by increase in the number of prototype symbols? Is there a limit to the number and the type of prototype symbols at which the system performance degrades seriously?</li>
+<li>How do the symbol recognition methods degrade with noise? Are they robust in the presence of image noise and/or unreliable graphical primitive detection? How sensitive are the methods to the number of training samples per prototype symbol?</li>
+<li>Is there a best symbol representation? The best representation should be compact, incrementally extensible, computationally inexpensive for generating symbol hypotheses, capable of representing all symbol types, capable 76 of representing similar symbol prototypes with a similar representation or a shared representation, and insensitive to noise.</li>
+<li>Is there a best method for general symbol recognition? Is there a best method for a specific symbol recognition domain? No meaningful comparisons between various methods are available. One is hard pressed to find a publication on a symbol recognition method that compares its method with any other method in a systematic and quantitative way.</li>
+<li>Is there a way for researchers to compare their methods with other methods?In other words, where is the practice, that is commonplace in successful pattern recognition domains, of reporting results on standard databases of training and test patterns?</li>
+<li>Is is possible to evaluate and compare all or most symbol recognition methods in a domain independent manner?</li>
+<li>There is a need for comprehensive performance measures and experimental protocols to enable a comparison of symbol recognition methods.</li>
+</ul>
+</blockquote>
+
+      
+    </div>
+
+    
+
+    
+    
+    
+
+    
+
+    
+      
+    
+    
+
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/paper/" rel="tag"># paper</a>
+          
+            <a href="/tags/graphic-symbol-recognition/" rel="tag"># graphic symbol recognition</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2019/05/10/Windows-Terminal-预览/" rel="next" title="Windows Terminal 预览">
+                <i class="fa fa-chevron-left"></i> Windows Terminal 预览
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2019/05/18/模板匹配（Template-Matching）/" rel="prev" title="模板匹配（Template Matching）">
+                模板匹配（Template Matching） <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+  </div>
+
+
+          </div>
+          
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            Overview
+          </li>
+        </ul>
+      
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <p class="site-author-name" itemprop="name">Joe</p>
+              <div class="site-description motion-element" itemprop="description"></div>
+          </div>
+
+          
+            <nav class="site-state motion-element">
+              
+                <div class="site-state-item site-state-posts">
+                
+                  <a href="/archives/">
+                
+                    <span class="site-state-item-count">6</span>
+                    <span class="site-state-item-name">posts</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-categories">
+                  
+                    
+                      <a href="/categories/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">4</span>
+                    <span class="site-state-item-name">categories</span>
+                  </a>
+                </div>
+              
+
+              
+                
+                
+                <div class="site-state-item site-state-tags">
+                  
+                    
+                      <a href="/tags/">
+                    
+                  
+                    
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                      
+                    
+                    <span class="site-state-item-count">8</span>
+                    <span class="site-state-item-name">tags</span>
+                  </a>
+                </div>
+              
+            </nav>
+          
+
+          
+
+          
+
+          
+            <div class="links-of-author motion-element">
+              
+                <span class="links-of-author-item">
+                  
+                  
+                    
+                  
+                  
+                    
+                  
+                  <a href="https://github.com/cFireworks" title="GitHub &rarr; https://github.com/cFireworks" rel="noopener" target="_blank"><i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+            </div>
+          
+
+          
+
+          
+          
+
+          
+            
+          
+          
+
+        </div>
+      </div>
+
+      
+      <!--noindex-->
+        <div class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+            
+            
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#论文《Graphic-Symbol-Recognition-An-Overview》"><span class="nav-number">1.</span> <span class="nav-text">论文《Graphic Symbol Recognition:An Overview》</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#摘要"><span class="nav-number">1.1.</span> <span class="nav-text">摘要</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一、介绍"><span class="nav-number">1.2.</span> <span class="nav-text">一、介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#二、应用和方法"><span class="nav-number">1.3.</span> <span class="nav-text">二、应用和方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-电路图"><span class="nav-number">1.3.1.</span> <span class="nav-text">2.1 电路图</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#论文一：-“An-automatic-circuit-diagram-reader-with-loop-structure-based-symbol-recognition”"><span class="nav-number">1.3.2.</span> <span class="nav-text">论文一： “An automatic circuit diagram reader with loop-structure-based symbol recognition”</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1）简介"><span class="nav-number">1.3.2.1.</span> <span class="nav-text">1）简介</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2）基于环结构的符号分割"><span class="nav-number">1.3.2.2.</span> <span class="nav-text">2）基于环结构的符号分割</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#3）基于环结构的启发式混合符号识别"><span class="nav-number">1.3.2.3.</span> <span class="nav-text">3）基于环结构的启发式混合符号识别</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#4）字符识别、无环符号和矩形识别、线的分析"><span class="nav-number">1.3.2.4.</span> <span class="nav-text">4）字符识别、无环符号和矩形识别、线的分析</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#论文二：-“Recognizing-hand-written-electrical-circuit-symbols-with-attributed-graph-matching”"><span class="nav-number">1.3.3.</span> <span class="nav-text">论文二： “Recognizing hand-written electrical circuit symbols with attributed graph matching”</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1）简介-1"><span class="nav-number">1.3.3.1.</span> <span class="nav-text">1）简介</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2）属性图的构建"><span class="nav-number">1.3.3.2.</span> <span class="nav-text">2）属性图的构建</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#论文三：-“A-symbol-recognition-system”"><span class="nav-number">1.3.4.</span> <span class="nav-text">论文三： “A symbol recognition system”</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#论文四：-“A-new-system-for-the-analysis-of-schematic-diagrams”"><span class="nav-number">1.3.5.</span> <span class="nav-text">论文四： “A new system for the analysis of schematic diagrams”</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#论文五：-“Recognition-of-logic-diagrams-by-identifying-loops-and-rectilinear-polylines”"><span class="nav-number">1.3.6.</span> <span class="nav-text">论文五： “Recognition of logic diagrams by identifying loops and rectilinear polylines”</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#三、Open-Issues"><span class="nav-number">1.4.</span> <span class="nav-text">三、Open Issues</span></a></li></ol></li></ol></div>
+            
+
+          </div>
+        </div>
+      <!--/noindex-->
+      
+
+      
+
+    </div>
+  </aside>
+  
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; <span itemprop="copyrightYear">2020</span>
+  <span class="with-love" id="animate">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Joe</span>
+
+  
+
+  
+</div>
+
+
+  <div class="powered-by">Powered by <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> v3.8.0</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">Theme – <a href="https://theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> v7.1.1</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+    
+
+    
+  </div>
+
+  
+
+<script>
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  <script src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+
+  
+
+
+  <script src="/js/utils.js?v=7.1.1"></script>
+
+  <script src="/js/motion.js?v=7.1.1"></script>
+
+
+
+  
+  
+
+
+  <script src="/js/affix.js?v=7.1.1"></script>
+
+  <script src="/js/schemes/pisces.js?v=7.1.1"></script>
+
+
+
+
+  
+  <script src="/js/scrollspy.js?v=7.1.1"></script>
+<script src="/js/post-details.js?v=7.1.1"></script>
+
+
+
+  
+
+
+  <script src="/js/next-boot.js?v=7.1.1"></script>
+
+
+  
+
+  
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+  
+  
+  <script>
+    
+    function addCount(Counter) {
+      var $visitors = $('.leancloud_visitors');
+      var url = $visitors.attr('id').trim();
+      var title = $visitors.attr('data-flag-title').trim();
+
+      Counter('get', '/classes/Counter', { where: JSON.stringify({ url }) })
+        .done(function({ results }) {
+          if (results.length > 0) {
+            var counter = results[0];
+            
+            Counter('put', '/classes/Counter/' + counter.objectId, JSON.stringify({ time: { '__op': 'Increment', 'amount': 1 } }))
+            
+              .done(function() {
+                var $element = $(document.getElementById(url));
+                $element.find('.leancloud-visitors-count').text(counter.time + 1);
+              })
+            
+              .fail(function ({ responseJSON }) {
+                console.log('Failed to save Visitor num, with error message: ' + responseJSON.error);
+              })
+          } else {
+            
+              Counter('post', '/classes/Counter', JSON.stringify({ title: title, url: url, time: 1 }))
+                .done(function() {
+                  var $element = $(document.getElementById(url));
+                  $element.find('.leancloud-visitors-count').text(1);
+                })
+                .fail(function() {
+                  console.log('Failed to create');
+                });
+            
+          }
+        })
+        .fail(function ({ responseJSON }) {
+          console.log('LeanCloud Counter Error: ' + responseJSON.code + ' ' + responseJSON.error);
+        });
+    }
+    
+
+    $(function() {
+      $.get('https://app-router.leancloud.cn/2/route?appId=' + 'YIVATHSRia1NxwQ358Sob9WG-gzGzoHsz')
+        .done(function({ api_server }) {
+          var Counter = function(method, url, data) {
+            return $.ajax({
+              method: method,
+              url: 'https://' + api_server + '/1.1' + url,
+              headers: {
+                'X-LC-Id': 'YIVATHSRia1NxwQ358Sob9WG-gzGzoHsz',
+                'X-LC-Key': 'IitmWUMstkNcO7Bc228eqlPB',
+                'Content-Type': 'application/json',
+              },
+              data: data
+            });
+          };
+          
+            addCount(Counter);
+          
+        });
+    });
+  </script>
+
+
+
+  
+
+  
+  
+
+  
+  
+
+  
+    
+      <script type="text/x-mathjax-config">
+  
+
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$', '$'], ['\\(', '\\)'] ],
+      processEscapes: true,
+      skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+      
+      equationNumbers: {
+        autoNumber: 'AMS'
+      }
+    }
+  });
+  MathJax.Hub.Register.StartupHook('TeX Jax Ready', function() {
+    MathJax.InputJax.TeX.prefilterHooks.Add(function(data) {
+      if (data.display) {
+        var next = data.script.nextSibling;
+        while (next && next.nodeName.toLowerCase() === '#text') { next = next.nextSibling }
+        if (next && next.nodeName.toLowerCase() === 'br') { next.parentNode.removeChild(next) }
+      }
+    });
+  });
+</script>
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for (i = 0; i < all.length; i += 1) {
+      document.getElementById(all[i].inputID + '-Frame').parentNode.className += ' has-jax';
+    }
+  });
+</script>
+<script src="//cdn.jsdelivr.net/npm/mathjax@2/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><!-- hexo-inject:begin --><!-- Begin: Injected MathJax -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config("");
+</script>
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Queue(function() {
+    var all = MathJax.Hub.getAllJax(), i;
+    for(i=0; i < all.length; i += 1) {
+      all[i].SourceElement().parentNode.className += ' has-jax';
+    }
+  });
+</script>
+
+<script type="text/javascript" src>
+</script>
+<!-- End: Injected MathJax -->
+<!-- hexo-inject:end -->
+
+    
+  
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
