@@ -1,153 +1,281 @@
 <?xml version="1.0" encoding="utf-8"?>
-<search> 
-  
-  
-    
-    <entry>
-      <title>ttest</title>
-      <link href="2020/09/13/ttest/"/>
-      <url>2020/09/13/ttest/</url>
-      
-        <content type="html"><![CDATA[]]></content>
-      
-      
-      
-    </entry>
-    
-    
-    
-    <entry>
-      <title>模板匹配（Template Matching）</title>
-      <link href="2019/05/18/%E6%A8%A1%E6%9D%BF%E5%8C%B9%E9%85%8D%EF%BC%88Template-Matching%EF%BC%89/"/>
-      <url>2019/05/18/%E6%A8%A1%E6%9D%BF%E5%8C%B9%E9%85%8D%EF%BC%88Template-Matching%EF%BC%89/</url>
-      
-        <content type="html"><![CDATA[<h2 id="一、简介"><a href="#一、简介" class="headerlink" title="一、简介"></a>一、简介</h2><p>模板匹配技术是使用一个模板来表示被搜索的物体，通过计算模板的所有相关位姿与图像各个位置之间的<strong>相似度</strong>（<em>可以用不同方式定义，例如基于模板和图像的灰度值或基于模板边缘与图像边缘的接近程度</em>），来确定是否在图像中找到该模板。<br>模板匹配可以应用在许多场合：完整性检测、物体识别、目标物体在图像中的位姿等。</p><h2 id="二、算法"><a href="#二、算法" class="headerlink" title="二、算法"></a>二、算法</h2><h3 id="2-1-基于灰度值的模板匹配"><a href="#2-1-基于灰度值的模板匹配" class="headerlink" title="2.1 基于灰度值的模板匹配"></a>2.1 基于灰度值的模板匹配</h3><p>为了计算模板与图像位置$(r,c)$处灰度值之间的度量关系，得到原始图像中每个点处对应的度量值，定义一个基于灰度的相似度量函数$s$：</p><p>$$s(r,c)=s{t(u,v),f(r+u,c+v);(u,v)\in T}$$</p><p>计算模板与图像之间差值的绝对值总和或所有差值的平方和（SAD和SSD），在这两个等式中n是模板感兴趣区域点的个数，如果模板和图像是相同的，则计算度量为0，若不同将大于0，该度量适用于<strong>光照不发生变化</strong>的情况下。</p><p>$$<br>sad(r,c)=\cfrac{1}{n} \sum \left | t(u,v)-f(r+u,c+v) \right| \<br>ssd(r,c)=\cfrac{1}{n} \sum \left [ t(u,v)-f(r+u,c+v) \right]^2 \<br>$$</p><p>针对光照变化的情况下，归一化互相关系数（NCC）能够达到不随任何线性的光照变化而变化的要求，归一化互相关系数$ncc(r,c)$的取值范围是[-1,1],如果$ncc(r,c)=\pm 1$，图像就是模板的一个线性比例版本。等式如下：</p><p>$$<br>ncc(r,c)=\cfrac{1}{n} \sum \cfrac{t(u,v)-m_t}{\sqrt{s^2_t}} \cdot \cfrac{f(r+u,c+v)-m_f(r,c)}{\sqrt{s^2_f(r,c)}} \<br>m_t=\cfrac{1}{n} \sum  t(u,v) \<br>s^2_t = \cfrac{1}{n} \sum  [t(u,v)-m_t]^2 \<br>m_f(r,c) = \cfrac{1}{n} \sum f(r+u,c+v) \<br>s^2_f(r,c) = \cfrac{1}{n} \sum [f(r+u,c+v)-m_f(r,c)]^2<br>$$</p><p>该算法的时间复杂度是$O(whn)$，其中 $w$ 和 $h$ 是图像的宽和高，$n$ 是模板中点的数量。可以使用停止标准，即在确定不可能达到阈值的情况下停止相似度量的计算，进行提速优化，但这无法改变该算法的复杂度。</p><h3 id="2-2-使用图形金字塔进行匹配"><a href="#2-2-使用图形金字塔进行匹配" class="headerlink" title="2.2 使用图形金字塔进行匹配"></a>2.2 使用图形金字塔进行匹配</h3><p>一种提高搜索速度的方法是先只考虑图像和模板中间隔为i的点集，以得到模板的大概位姿，随后用间隔更小的点集在大概位姿周围进行进一步搜索得到更精准的结果，这种策略相当于对模板进行二次抽样。<br>我们将图像与模板多次缩小2倍建立起来的数据结构成为<strong>图像金字塔</strong>，在构建金字塔的过程中常使用 $2 \times 2$ 的均值滤波器来平滑图像。基于图像金字塔，可以定义如下的分层搜索策略：</p><ol><li>计算搜索图像和模板适当层数的图像金字塔</li><li>在最高层金字塔上进行一次完整的匹配</li><li>将高层中的匹配结果映射到金字塔中的下一层，并选取匹配结果周围的一个区域作为新的搜索区域</li></ol><p>在图像金字塔中层数越高，使用的匹配阈值需越宽松。</p><h3 id="2-3-基于灰度值的亚像素精度匹配"><a href="#2-3-基于灰度值的亚像素精度匹配" class="headerlink" title="2.3 基于灰度值的亚像素精度匹配"></a>2.3 基于灰度值的亚像素精度匹配</h3><h3 id="2-4-带旋转与缩放的模板匹配"><a href="#2-4-带旋转与缩放的模板匹配" class="headerlink" title="2.4 带旋转与缩放的模板匹配"></a>2.4 带旋转与缩放的模板匹配</h3>]]></content>
-      
-      
+<search>
+  <entry>
+    <title>Object Detection API学习</title>
+    <url>/2019/05/07/Object-Detection-API%E5%AD%A6%E4%B9%A0/</url>
+    <content><![CDATA[]]></content>
       <categories>
-          
-          <category> Algorithm </category>
-          
+        <category>Framework</category>
       </categories>
-      
-      
-        <tags>
-            
-            <tag> computer vision </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    
-    
-    <entry>
-      <title>Paper Reading:Graphic Symbol Recognition_an overview</title>
-      <link href="2019/05/14/Paper-Reading-Graphic-Symbol-Recognition-an-overview/"/>
-      <url>2019/05/14/Paper-Reading-Graphic-Symbol-Recognition-an-overview/</url>
-      
-        <content type="html"><![CDATA[<h1 id="论文《Graphic-Symbol-Recognition-An-Overview》"><a href="#论文《Graphic-Symbol-Recognition-An-Overview》" class="headerlink" title="论文《Graphic Symbol Recognition:An Overview》"></a>论文《Graphic Symbol Recognition:An Overview》</h1><h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><blockquote><p><strong>Abstract：</strong> Symbol recognition is one of the primary stages of any graphics recognition system. This paper reviews the current state of the art in graphic symbol recognition and raises some open issues that need further investigation. Work on symbol recognition tends to be highly application specific. Therefore, this review presents the symbol recognition methods in the context of specific applications.</p></blockquote><p>本篇论文是1998年发表在GREC上的一篇综述文章，介绍了当时为止<code>符号检测</code>领域的研究情况，并提出了待研究的问题。</p><h2 id="一、介绍"><a href="#一、介绍" class="headerlink" title="一、介绍"></a>一、介绍</h2><blockquote><p>In order to distinguish symbol recognition from character recognition, we use the term ‘<strong>graphic symbol recognition</strong>‘.</p></blockquote><p>该论文将符号识别问题与字符识别问题进行区分，定义此类问题为图像符号识别。</p><blockquote><p>However, to provide a frame of reference for symbol recognition, we briefly discuss the various stages in a diagram/drawing recognition system.<br><em>The first phase</em> of any such system is the image preprocessing step.<br><em>The second stage</em> performs detection of graphical primitives such as lines, arcs, text regions, etc.<br><em>The syntactic phase</em> imposes a grammar on the recognized graphical symbols and primitives. </p></blockquote><p>在图像识别系统中，通常分为三个步骤：</p><ul><li>图像预处理步骤，包括噪声去除、二值化、细化处理等</li><li>图元的检测步骤，例如线、圆弧、文字区域的检测</li><li>语义理解部分，从符号和图元中解析出有意义的信息（分类等）</li></ul><h2 id="二、应用和方法"><a href="#二、应用和方法" class="headerlink" title="二、应用和方法"></a>二、应用和方法</h2><h3 id="2-1-电路图"><a href="#2-1-电路图" class="headerlink" title="2.1 电路图"></a>2.1 电路图</h3><blockquote><p>Electrical circuits are typically composed of <strong>symbols</strong> , <strong>interconnections</strong> , and <strong>annotations</strong>. </p></blockquote><p>电路图主要包含三个部分：<code>符号</code>、<code>连接</code>、<code>标注</code></p><h3 id="论文一：-“An-automatic-circuit-diagram-reader-with-loop-structure-based-symbol-recognition”"><a href="#论文一：-“An-automatic-circuit-diagram-reader-with-loop-structure-based-symbol-recognition”" class="headerlink" title="论文一： “An automatic circuit diagram reader with loop-structure-based symbol recognition”"></a>论文一： <em>“An automatic circuit diagram reader with loop-structure-based symbol recognition”</em></h3><blockquote><p>Okazaki et al. describe a logic diagram reader that recognizes loop structured symbols by symbol segmentation and identification.<br><strong>Key words: loop structured symbols</strong>    </p></blockquote><h4 id="1）简介"><a href="#1）简介" class="headerlink" title="1）简介"></a>1）简介</h4><p>该论文提出了一种方法，用于对VLSI-CAD输入数据中的逻辑电路图进行识别，逻辑电路图大多具有环结构，本论文首先对环状符号进行识别，用以对候选环进行检测。本文处理的环状符号具有以下属性：</p><ul><li>符号由一个或多个基本环图元构成（基本环图元是没有子环的环状符号）</li><li>符号的尺寸、方向和位置是不固定的</li><li>符号之间通过连接线连接，且分布非常密集</li><li>许多符号都比较相似</li><li>新图元需要被使用者添加</li></ul><p>检测候选环之后，对环状符号进行识别，这是一个two-stage识别过程。第一步是符号分割（<code>symbol segmentation</code>），先对候选环的合理性进行确定并分割出相应区域。第二步是符号识别（<code>symbol identification</code>），对分割出的区域进行分析得出结论。符号分割和符号识别都由决策树进行控制。    </p><h4 id="2）基于环结构的符号分割"><a href="#2）基于环结构的符号分割" class="headerlink" title="2）基于环结构的符号分割"></a>2）基于环结构的符号分割</h4><p>独立环检测步骤，一个独立的环可以通过连通分量标签（<code>component labeling</code>）的方法找到。之后是分割出最小分析区域（minimum region for analysis, <code>MRA</code>），MRA中包含着识别符号的所有组成部分，但区域最小。可以说是从候选基本环状图元扩大到包含符号的所有组件，但又不至于更大到包含多个符号。<br>MRA的计算策略如下：</p><ul><li>符号集合是预定义的，模板符号的尺寸固定，最多有8个实现，包括四个方向和镜像表示</li><li>除了无环符号，所有符号都具有某个特征环（<code>characteristic loop</code>），即不同符号的公共基本环图元</li><li>所有符号具有相应的符号窗口（<code>symbol window</code>），是适应符号大小的矩形窗口</li><li>定义特征环（<code>characteristic loop</code>）的中心为基点（<code>base point</code>）</li><li>定义特征窗口（<code>characteristic window</code>）为所有包含该特征环的不同符号的符号窗口的合并</li><li>有相同特征窗口的被归回中间类别（<code>intermediate categories</code>）</li></ul><p>根据一个候选环获得MRA，包括三个步骤：<br>Step 1 ：通过候选环形图提取8个特征</p><ul><li>Feature1：环形面积</li><li>Feature2-5：四类mask patterns出现的数目，近似于四种斜率直线的长度</li><li>Feature6：三分支节点的数量（假设图像是细化图像）</li><li>Feature7-8：适应候选环大小的矩形宽、高</li></ul><p>Step 2 ：基于8个特征，使用决策树来确定候选环所属的中间类别以及方向<br>Step 3 ：根据上一步的中间类别结果和先验MRA信息确定MRA结果</p><h4 id="3）基于环结构的启发式混合符号识别"><a href="#3）基于环结构的启发式混合符号识别" class="headerlink" title="3）基于环结构的启发式混合符号识别"></a>3）基于环结构的启发式混合符号识别</h4><p>符号识别步骤，在MRA和中间类别已知的情况下计算得到符号的具体类型。一个简单的符号识别方法是模板匹配（<code>template matching</code>），步骤如下：</p><ul><li>准备独立环状图作为图元模板（<code>primitive templates</code>），例如基本圆、三角、矩形。将图元模板分为两大类，一类是基类符号（<code>radical symbols</code>），另一类是辅助符号（<code>auxiliary symbols</code>）</li><li>执行模板匹配，使用一个多步匹配过程的决策树。</li></ul><p>另一种模板匹配方法：<br>Step 1 ：从MRA中提取特征</p><ul><li>连接线的数量</li><li>X方向和Y方向上的尖峰数量</li><li>簇（<code>cluster</code>）数量及其集合特征</li><li>several local features of the filled-hole image</li></ul><p>以一定的规则合并两种方法识别的结果。</p><p>Step 2 ：根据以上特征从MRA中识别符号</p><h4 id="4）字符识别、无环符号和矩形识别、线的分析"><a href="#4）字符识别、无环符号和矩形识别、线的分析" class="headerlink" title="4）字符识别、无环符号和矩形识别、线的分析"></a>4）字符识别、无环符号和矩形识别、线的分析</h4><hr><h3 id="论文二：-“Recognizing-hand-written-electrical-circuit-symbols-with-attributed-graph-matching”"><a href="#论文二：-“Recognizing-hand-written-electrical-circuit-symbols-with-attributed-graph-matching”" class="headerlink" title="论文二： “Recognizing hand-written electrical circuit symbols with attributed graph matching”"></a>论文二： <em>“Recognizing hand-written electrical circuit symbols with attributed graph matching”</em></h3><blockquote><p>Lee proposes a model based approach to electrical circuit symbol recognition. A hybrid representation of a symbol, called an attribute graph, incorporating structural and statistical features of the symbol, is used for symbol matching.<br><strong>Key words: attribute graph, incorporating structural, statistical features</strong></p></blockquote><h4 id="1）简介-1"><a href="#1）简介-1" class="headerlink" title="1）简介"></a>1）简介</h4><p>该论文提出一种检测手写电路图符号的方法，使用一种混合表示：属性图（<code>attributed graph</code> , <code>AG</code>），结合结构和统计特征的图像模式（<code>image patterns</code>）</p><h4 id="2）属性图的构建"><a href="#2）属性图的构建" class="headerlink" title="2）属性图的构建"></a>2）属性图的构建</h4><p><strong>属性图表示的定义</strong><br>属性图中的属性是由在单像素宽度线表示的符号中段或顶点图元（<code>segment primitive</code> , <code>vertex primitive</code>）构成的局部结构的数值特征。对于段图元（<code>segment primitive</code>）， 长度、曲率、两端点是属性；对于顶点图元（<code>vertex primitive</code>），位置、类型（终点、拐点、连接点）、连接该顶点的段列表、连接该顶点的段的角度列表是属性。<br>根据以上属性还可以得到统计属性，对于段图元，这些属性包括数量、平均长度、长度的方差、平均曲率、曲率方差；对于顶点图元，这些属性包括统计数量、平均坐标位置、平均坐标位置方差和连接段的直方图。<br><strong>构建一个属性图</strong><br>Step 1 ：快速细化（<code>Fast skeletonization</code>）<br>在校正阴影和阈值分割（<em>Low-level image processing by max-min filters</em>）后，使用快速细化算法（<em>A Contour Processing Method for Fast Binary Neighborhood Operations</em>）获取符号图形的骨架。<br>Step 2 ：线跟踪和分段近似（<code>Line-tracking</code> , <code>piecewise segment approximation</code>）：<br>在细化图中，不同类型的像素点包括终点、拐点和连接点像素。线跟踪用于找到不同的骨架部分。 该骨架部分被近似为直线或是圆弧通过以下策略确定：</p><ol><li>The maximum distance is calculated between the part and the straight linesegment.</li><li>When this distance exceeds a threshold dc, a circular line-segment is calculated through the endpoints of the skeleton part and the pixel in the middle of the part.</li><li>The maximum distance between the circular line-segment and the skeleton<br>part is calculated.</li><li>When this maximum distance is smaller than the one of the straight line<br>approximation, the circular approximation is used.</li><li>When the maximum distance exceeds a threshold dmax , the skeleton part is split at the pixel of maximum distance to the straight line.</li><li>Above five steps are repeated on both resulting parts until the dmax condition is satisfied.</li></ol><p>Step 3 ：错误纠正（<code>Error recovery</code>）：</p><ol><li>Two close end points within a threshold $d_{min}$ from each other are joined.</li><li>All segments with at least one end point and shorter than a threshold $d_{min}$ are removed.</li><li>All other segments shorter than a threshold $d_{min}$ are absorbed.</li><li>End points within a distance $d_{min}$ from a straight or a circular line-segment are attached to it, resulting in a junction and the splitting of the straight or circular line-segment.</li><li>Two close segments within a threshold $d_{min}$ from each other are joined.</li><li>Corners between straight line-segments with an angle close to 1800 are deleted and the segments are joined.</li><li>Small loops are deleted.</li></ol><h3 id="论文三：-“A-symbol-recognition-system”"><a href="#论文三：-“A-symbol-recognition-system”" class="headerlink" title="论文三： “A symbol recognition system”"></a>论文三： <em>“A symbol recognition system”</em></h3><blockquote><p>Cheng et al. present a neural network based symbol recognition system for electrical drawings.<br><strong>Key words: neural network</strong></p></blockquote><h3 id="论文四：-“A-new-system-for-the-analysis-of-schematic-diagrams”"><a href="#论文四：-“A-new-system-for-the-analysis-of-schematic-diagrams”" class="headerlink" title="论文四： “A new system for the analysis of schematic diagrams”"></a>论文四： <em>“A new system for the analysis of schematic diagrams”</em></h3><blockquote><p>Hamada proposes a schematic diagram interpretation system in which electrical symbol recognition and detection of connecting lines are interdependent.<br><strong>Key words: connecting lines</strong> </p></blockquote><h3 id="论文五：-“Recognition-of-logic-diagrams-by-identifying-loops-and-rectilinear-polylines”"><a href="#论文五：-“Recognition-of-logic-diagrams-by-identifying-loops-and-rectilinear-polylines”" class="headerlink" title="论文五： “Recognition of logic diagrams by identifying loops and rectilinear polylines”"></a>论文五： <em>“Recognition of logic diagrams by identifying loops and rectilinear polylines”</em></h3><blockquote><p>Kim et al. propose a system to recognize logic diagrams by identifying loops and rectilinear polylines. Preprocessing is done to convert an image into its line skeleton description. The symbol feature set includes Fourier descriptors for loops and six-tuple line segment based moment invariants for symbols.<br><strong>Key words: loops, rectilinear polylines, line skeleton description</strong> </p></blockquote><h2 id="三、Open-Issues"><a href="#三、Open-Issues" class="headerlink" title="三、Open Issues"></a>三、Open Issues</h2><blockquote><ul><li>Graphic symbol recognition seems to be trapped in a low level recognition mode. Very little work has been done on trying to correct the errors made by symbol segmenting and matching techniques using feedback from the syntactic or semantic stages of a drawing or diagram recognition system.    </li><li>Most symbol recognition methods do not address the scalability issue. How is the cost of symbol representation, and the computational cost of recognition, affected by increase in the number of prototype symbols? Is there a limit to the number and the type of prototype symbols at which the system performance degrades seriously?</li><li>How do the symbol recognition methods degrade with noise? Are they robust in the presence of image noise and/or unreliable graphical primitive detection? How sensitive are the methods to the number of training samples per prototype symbol?</li><li>Is there a best symbol representation? The best representation should be compact, incrementally extensible, computationally inexpensive for generating symbol hypotheses, capable of representing all symbol types, capable 76 of representing similar symbol prototypes with a similar representation or a shared representation, and insensitive to noise.</li><li>Is there a best method for general symbol recognition? Is there a best method for a specific symbol recognition domain? No meaningful comparisons between various methods are available. One is hard pressed to find a publication on a symbol recognition method that compares its method with any other method in a systematic and quantitative way.</li><li>Is there a way for researchers to compare their methods with other methods?In other words, where is the practice, that is commonplace in successful pattern recognition domains, of reporting results on standard databases of training and test patterns?</li><li>Is is possible to evaluate and compare all or most symbol recognition methods in a domain independent manner?</li><li>There is a need for comprehensive performance measures and experimental protocols to enable a comparison of symbol recognition methods.</li></ul></blockquote>]]></content>
-      
-      
+      <tags>
+        <tag>deep learning</tag>
+        <tag>object detection</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Paper Reading:Graphic Symbol Recognition_an overview</title>
+    <url>/2019/05/14/Paper-Reading-Graphic-Symbol-Recognition-an-overview/</url>
+    <content><![CDATA[<h1 id="论文《Graphic-Symbol-Recognition-An-Overview》"><a href="#论文《Graphic-Symbol-Recognition-An-Overview》" class="headerlink" title="论文《Graphic Symbol Recognition:An Overview》"></a>论文《Graphic Symbol Recognition:An Overview》</h1><h2 id="摘要"><a href="#摘要" class="headerlink" title="摘要"></a>摘要</h2><blockquote>
+<p><strong>Abstract：</strong> Symbol recognition is one of the primary stages of any graphics recognition system. This paper reviews the current state of the art in graphic symbol recognition and raises some open issues that need further investigation. Work on symbol recognition tends to be highly application specific. Therefore, this review presents the symbol recognition methods in the context of specific applications.</p>
+</blockquote>
+<p>本篇论文是1998年发表在GREC上的一篇综述文章，介绍了当时为止<code>符号检测</code>领域的研究情况，并提出了待研究的问题。</p>
+<h2 id="一、介绍"><a href="#一、介绍" class="headerlink" title="一、介绍"></a>一、介绍</h2><blockquote>
+<p>In order to distinguish symbol recognition from character recognition, we use the term ‘<strong>graphic symbol recognition</strong>‘.</p>
+</blockquote>
+<p>该论文将符号识别问题与字符识别问题进行区分，定义此类问题为图像符号识别。</p>
+<blockquote>
+<p>However, to provide a frame of reference for symbol recognition, we briefly discuss the various stages in a diagram/drawing recognition system.<br><em>The first phase</em> of any such system is the image preprocessing step.<br><em>The second stage</em> performs detection of graphical primitives such as lines, arcs, text regions, etc.<br><em>The syntactic phase</em> imposes a grammar on the recognized graphical symbols and primitives. </p>
+</blockquote>
+<p>在图像识别系统中，通常分为三个步骤：</p>
+<ul>
+<li>图像预处理步骤，包括噪声去除、二值化、细化处理等</li>
+<li>图元的检测步骤，例如线、圆弧、文字区域的检测</li>
+<li>语义理解部分，从符号和图元中解析出有意义的信息（分类等）</li>
+</ul>
+<h2 id="二、应用和方法"><a href="#二、应用和方法" class="headerlink" title="二、应用和方法"></a>二、应用和方法</h2><h3 id="2-1-电路图"><a href="#2-1-电路图" class="headerlink" title="2.1 电路图"></a>2.1 电路图</h3><blockquote>
+<p>Electrical circuits are typically composed of <strong>symbols</strong> , <strong>interconnections</strong> , and <strong>annotations</strong>. </p>
+</blockquote>
+<p>电路图主要包含三个部分：<code>符号</code>、<code>连接</code>、<code>标注</code></p>
+<h3 id="论文一：-“An-automatic-circuit-diagram-reader-with-loop-structure-based-symbol-recognition”"><a href="#论文一：-“An-automatic-circuit-diagram-reader-with-loop-structure-based-symbol-recognition”" class="headerlink" title="论文一： “An automatic circuit diagram reader with loop-structure-based symbol recognition”"></a>论文一： <em>“An automatic circuit diagram reader with loop-structure-based symbol recognition”</em></h3><blockquote>
+<p>Okazaki et al. describe a logic diagram reader that recognizes loop structured symbols by symbol segmentation and identification.<br><strong>Key words: loop structured symbols</strong>    </p>
+</blockquote>
+<h4 id="1）简介"><a href="#1）简介" class="headerlink" title="1）简介"></a>1）简介</h4><p>该论文提出了一种方法，用于对VLSI-CAD输入数据中的逻辑电路图进行识别，逻辑电路图大多具有环结构，本论文首先对环状符号进行识别，用以对候选环进行检测。本文处理的环状符号具有以下属性：</p>
+<ul>
+<li>符号由一个或多个基本环图元构成（基本环图元是没有子环的环状符号）</li>
+<li>符号的尺寸、方向和位置是不固定的</li>
+<li>符号之间通过连接线连接，且分布非常密集</li>
+<li>许多符号都比较相似</li>
+<li>新图元需要被使用者添加</li>
+</ul>
+<p>检测候选环之后，对环状符号进行识别，这是一个two-stage识别过程。第一步是符号分割（<code>symbol segmentation</code>），先对候选环的合理性进行确定并分割出相应区域。第二步是符号识别（<code>symbol identification</code>），对分割出的区域进行分析得出结论。符号分割和符号识别都由决策树进行控制。    </p>
+<h4 id="2）基于环结构的符号分割"><a href="#2）基于环结构的符号分割" class="headerlink" title="2）基于环结构的符号分割"></a>2）基于环结构的符号分割</h4><p>独立环检测步骤，一个独立的环可以通过连通分量标签（<code>component labeling</code>）的方法找到。之后是分割出最小分析区域（minimum region for analysis, <code>MRA</code>），MRA中包含着识别符号的所有组成部分，但区域最小。可以说是从候选基本环状图元扩大到包含符号的所有组件，但又不至于更大到包含多个符号。<br>MRA的计算策略如下：</p>
+<ul>
+<li>符号集合是预定义的，模板符号的尺寸固定，最多有8个实现，包括四个方向和镜像表示</li>
+<li>除了无环符号，所有符号都具有某个特征环（<code>characteristic loop</code>），即不同符号的公共基本环图元</li>
+<li>所有符号具有相应的符号窗口（<code>symbol window</code>），是适应符号大小的矩形窗口</li>
+<li>定义特征环（<code>characteristic loop</code>）的中心为基点（<code>base point</code>）</li>
+<li>定义特征窗口（<code>characteristic window</code>）为所有包含该特征环的不同符号的符号窗口的合并</li>
+<li>有相同特征窗口的被归回中间类别（<code>intermediate categories</code>）</li>
+</ul>
+<p>根据一个候选环获得MRA，包括三个步骤：<br>Step 1 ：通过候选环形图提取8个特征</p>
+<ul>
+<li>Feature1：环形面积</li>
+<li>Feature2-5：四类mask patterns出现的数目，近似于四种斜率直线的长度</li>
+<li>Feature6：三分支节点的数量（假设图像是细化图像）</li>
+<li>Feature7-8：适应候选环大小的矩形宽、高</li>
+</ul>
+<p>Step 2 ：基于8个特征，使用决策树来确定候选环所属的中间类别以及方向<br>Step 3 ：根据上一步的中间类别结果和先验MRA信息确定MRA结果</p>
+<h4 id="3）基于环结构的启发式混合符号识别"><a href="#3）基于环结构的启发式混合符号识别" class="headerlink" title="3）基于环结构的启发式混合符号识别"></a>3）基于环结构的启发式混合符号识别</h4><p>符号识别步骤，在MRA和中间类别已知的情况下计算得到符号的具体类型。一个简单的符号识别方法是模板匹配（<code>template matching</code>），步骤如下：</p>
+<ul>
+<li>准备独立环状图作为图元模板（<code>primitive templates</code>），例如基本圆、三角、矩形。将图元模板分为两大类，一类是基类符号（<code>radical symbols</code>），另一类是辅助符号（<code>auxiliary symbols</code>）</li>
+<li>执行模板匹配，使用一个多步匹配过程的决策树。</li>
+</ul>
+<p>另一种模板匹配方法：<br>Step 1 ：从MRA中提取特征</p>
+<ul>
+<li>连接线的数量</li>
+<li>X方向和Y方向上的尖峰数量</li>
+<li>簇（<code>cluster</code>）数量及其集合特征</li>
+<li>several local features of the filled-hole image</li>
+</ul>
+<p>以一定的规则合并两种方法识别的结果。</p>
+<p>Step 2 ：根据以上特征从MRA中识别符号</p>
+<h4 id="4）字符识别、无环符号和矩形识别、线的分析"><a href="#4）字符识别、无环符号和矩形识别、线的分析" class="headerlink" title="4）字符识别、无环符号和矩形识别、线的分析"></a>4）字符识别、无环符号和矩形识别、线的分析</h4><hr>
+<h3 id="论文二：-“Recognizing-hand-written-electrical-circuit-symbols-with-attributed-graph-matching”"><a href="#论文二：-“Recognizing-hand-written-electrical-circuit-symbols-with-attributed-graph-matching”" class="headerlink" title="论文二： “Recognizing hand-written electrical circuit symbols with attributed graph matching”"></a>论文二： <em>“Recognizing hand-written electrical circuit symbols with attributed graph matching”</em></h3><blockquote>
+<p>Lee proposes a model based approach to electrical circuit symbol recognition. A hybrid representation of a symbol, called an attribute graph, incorporating structural and statistical features of the symbol, is used for symbol matching.<br><strong>Key words: attribute graph, incorporating structural, statistical features</strong></p>
+</blockquote>
+<h4 id="1）简介-1"><a href="#1）简介-1" class="headerlink" title="1）简介"></a>1）简介</h4><p>该论文提出一种检测手写电路图符号的方法，使用一种混合表示：属性图（<code>attributed graph</code> , <code>AG</code>），结合结构和统计特征的图像模式（<code>image patterns</code>）</p>
+<h4 id="2）属性图的构建"><a href="#2）属性图的构建" class="headerlink" title="2）属性图的构建"></a>2）属性图的构建</h4><p><strong>属性图表示的定义</strong><br>属性图中的属性是由在单像素宽度线表示的符号中段或顶点图元（<code>segment primitive</code> , <code>vertex primitive</code>）构成的局部结构的数值特征。对于段图元（<code>segment primitive</code>）， 长度、曲率、两端点是属性；对于顶点图元（<code>vertex primitive</code>），位置、类型（终点、拐点、连接点）、连接该顶点的段列表、连接该顶点的段的角度列表是属性。<br>根据以上属性还可以得到统计属性，对于段图元，这些属性包括数量、平均长度、长度的方差、平均曲率、曲率方差；对于顶点图元，这些属性包括统计数量、平均坐标位置、平均坐标位置方差和连接段的直方图。<br><strong>构建一个属性图</strong><br>Step 1 ：快速细化（<code>Fast skeletonization</code>）<br>在校正阴影和阈值分割（<em>Low-level image processing by max-min filters</em>）后，使用快速细化算法（<em>A Contour Processing Method for Fast Binary Neighborhood Operations</em>）获取符号图形的骨架。<br>Step 2 ：线跟踪和分段近似（<code>Line-tracking</code> , <code>piecewise segment approximation</code>）：<br>在细化图中，不同类型的像素点包括终点、拐点和连接点像素。线跟踪用于找到不同的骨架部分。 该骨架部分被近似为直线或是圆弧通过以下策略确定：</p>
+<ol>
+<li>The maximum distance is calculated between the part and the straight linesegment.</li>
+<li>When this distance exceeds a threshold dc, a circular line-segment is calculated through the endpoints of the skeleton part and the pixel in the middle of the part.</li>
+<li>The maximum distance between the circular line-segment and the skeleton<br>part is calculated.</li>
+<li>When this maximum distance is smaller than the one of the straight line<br>approximation, the circular approximation is used.</li>
+<li>When the maximum distance exceeds a threshold dmax , the skeleton part is split at the pixel of maximum distance to the straight line.</li>
+<li>Above five steps are repeated on both resulting parts until the dmax condition is satisfied.</li>
+</ol>
+<p>Step 3 ：错误纠正（<code>Error recovery</code>）：</p>
+<ol>
+<li>Two close end points within a threshold $d_{min}$ from each other are joined.</li>
+<li>All segments with at least one end point and shorter than a threshold $d_{min}$ are removed.</li>
+<li>All other segments shorter than a threshold $d_{min}$ are absorbed.</li>
+<li>End points within a distance $d_{min}$ from a straight or a circular line-segment are attached to it, resulting in a junction and the splitting of the straight or circular line-segment.</li>
+<li>Two close segments within a threshold $d_{min}$ from each other are joined.</li>
+<li>Corners between straight line-segments with an angle close to 1800 are deleted and the segments are joined.</li>
+<li>Small loops are deleted.</li>
+</ol>
+<h3 id="论文三：-“A-symbol-recognition-system”"><a href="#论文三：-“A-symbol-recognition-system”" class="headerlink" title="论文三： “A symbol recognition system”"></a>论文三： <em>“A symbol recognition system”</em></h3><blockquote>
+<p>Cheng et al. present a neural network based symbol recognition system for electrical drawings.<br><strong>Key words: neural network</strong></p>
+</blockquote>
+<h3 id="论文四：-“A-new-system-for-the-analysis-of-schematic-diagrams”"><a href="#论文四：-“A-new-system-for-the-analysis-of-schematic-diagrams”" class="headerlink" title="论文四： “A new system for the analysis of schematic diagrams”"></a>论文四： <em>“A new system for the analysis of schematic diagrams”</em></h3><blockquote>
+<p>Hamada proposes a schematic diagram interpretation system in which electrical symbol recognition and detection of connecting lines are interdependent.<br><strong>Key words: connecting lines</strong> </p>
+</blockquote>
+<h3 id="论文五：-“Recognition-of-logic-diagrams-by-identifying-loops-and-rectilinear-polylines”"><a href="#论文五：-“Recognition-of-logic-diagrams-by-identifying-loops-and-rectilinear-polylines”" class="headerlink" title="论文五： “Recognition of logic diagrams by identifying loops and rectilinear polylines”"></a>论文五： <em>“Recognition of logic diagrams by identifying loops and rectilinear polylines”</em></h3><blockquote>
+<p>Kim et al. propose a system to recognize logic diagrams by identifying loops and rectilinear polylines. Preprocessing is done to convert an image into its line skeleton description. The symbol feature set includes Fourier descriptors for loops and six-tuple line segment based moment invariants for symbols.<br><strong>Key words: loops, rectilinear polylines, line skeleton description</strong> </p>
+</blockquote>
+<h2 id="三、Open-Issues"><a href="#三、Open-Issues" class="headerlink" title="三、Open Issues"></a>三、Open Issues</h2><blockquote>
+<ul>
+<li>Graphic symbol recognition seems to be trapped in a low level recognition mode. Very little work has been done on trying to correct the errors made by symbol segmenting and matching techniques using feedback from the syntactic or semantic stages of a drawing or diagram recognition system.    </li>
+<li>Most symbol recognition methods do not address the scalability issue. How is the cost of symbol representation, and the computational cost of recognition, affected by increase in the number of prototype symbols? Is there a limit to the number and the type of prototype symbols at which the system performance degrades seriously?</li>
+<li>How do the symbol recognition methods degrade with noise? Are they robust in the presence of image noise and/or unreliable graphical primitive detection? How sensitive are the methods to the number of training samples per prototype symbol?</li>
+<li>Is there a best symbol representation? The best representation should be compact, incrementally extensible, computationally inexpensive for generating symbol hypotheses, capable of representing all symbol types, capable 76 of representing similar symbol prototypes with a similar representation or a shared representation, and insensitive to noise.</li>
+<li>Is there a best method for general symbol recognition? Is there a best method for a specific symbol recognition domain? No meaningful comparisons between various methods are available. One is hard pressed to find a publication on a symbol recognition method that compares its method with any other method in a systematic and quantitative way.</li>
+<li>Is there a way for researchers to compare their methods with other methods?In other words, where is the practice, that is commonplace in successful pattern recognition domains, of reporting results on standard databases of training and test patterns?</li>
+<li>Is is possible to evaluate and compare all or most symbol recognition methods in a domain independent manner?</li>
+<li>There is a need for comprehensive performance measures and experimental protocols to enable a comparison of symbol recognition methods.</li>
+</ul>
+</blockquote>
+]]></content>
       <categories>
-          
-          <category> Paper </category>
-          
+        <category>Paper</category>
       </categories>
-      
-      
-        <tags>
-            
-            <tag> paper </tag>
-            
-            <tag> graphic symbol recognition </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    
-    
-    <entry>
-      <title>Windows Terminal 预览</title>
-      <link href="2019/05/10/Windows-Terminal-%E9%A2%84%E8%A7%88/"/>
-      <url>2019/05/10/Windows-Terminal-%E9%A2%84%E8%A7%88/</url>
-      
-        <content type="html"><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>微软在 Build 2019 宣布了新的命令行应用 Windows Terminal，支持 PowerShell、CMD、以及 Windows Subsystem for Linux（WSL）。</p><p>Windows Terminal 支持多 Tabs 体验、系统主题、插件、GPU 渲染加速，完整支持 Unicode（东亚语言、Emoji 等）。</p><p>目前Windows Terminal还没有提供正式版本，需要自己通过源码编译。</p><h2 id="一、安装"><a href="#一、安装" class="headerlink" title="一、安装"></a>一、安装</h2><h3 id="1-下载项目"><a href="#1-下载项目" class="headerlink" title="1. 下载项目"></a>1. 下载项目</h3><p>首先，从GitHub上复制这个项目<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/microsoft/Terminal.git</span><br><span class="line">git submodule update --init --recursive</span><br></pre></td></tr></table></figure></p><h3 id="2-build-and-install"><a href="#2-build-and-install" class="headerlink" title="2. build and install"></a>2. build and install</h3><p>开发环境配置</p><ul><li>“Desktop Development with C++”</li><li>“Universal Windows Platform Development”</li><li>Windows 10 1903 SDK (10.0.18362.0)</li><li>“v141 Toolset”</li></ul><p>Build 步骤 </p><ol><li>Visual Studio打开 <code>OpenConsole.sln</code> </li><li>设置平台（<code>x86/x64</code>）和生成模式（<code>debug/release</code>），运行生成解决方案</li><li>若出现报错error C2220，则将相关文件编码方式改为 <code>UTF-8</code>；main.cpp中换行符问题，则在str常量前加上前缀 <code>u8</code></li><li>系统设置中 - 更新 - 开发者选项 - App sources更改为开发者模式</li><li>右击 <code>Solution/Terminal/CascadiaPackage</code>，选择 <code>部署</code> 进行安装</li></ol><h3 id="3-设置"><a href="#3-设置" class="headerlink" title="3. 设置"></a>3. 设置</h3><p>在开始菜单可以找到 <code>Windows Terminal(Preview)</code> ，打开后还不能看到菜单按钮，摁下快捷键 <code>Ctrl + T</code> 新建一个子窗口，可以看到菜单栏，选择 <code>Settings</code> 可以修改 <code>profiles.json</code> 文件进行配置。    </p><h3 id="4-添加-WSL"><a href="#4-添加-WSL" class="headerlink" title="4. 添加 WSL"></a>4. 添加 WSL</h3><ol><li>Create a new session in <code>profiles</code>, with content copied from <code>profiles/cmd</code></li><li>Give it a new <code>guid</code></li><li>Give it a new <code>name</code>, such as <code>WSL</code></li><li>Specify its <code>commandline</code> to <code>wsl.exe</code>    </li></ol><p>下拉菜单可以看到 <code>WSL</code> 选项，示例如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    &quot;guid&quot;: &quot;&#123;09dc5eef-6840-4050-ae69-21e55e6a2e62&#125;&quot;,</span><br><span class="line">    &quot;name&quot;: &quot;WSL&quot;,</span><br><span class="line">    &quot;colorscheme&quot;: &quot;Campbell&quot;,</span><br><span class="line">    &quot;historySize&quot;: 9001,</span><br><span class="line">    &quot;snapOnInput&quot;: true,</span><br><span class="line">    &quot;cursorColor&quot;: &quot;#FFFFFF&quot;,</span><br><span class="line">    &quot;cursorShape&quot;: &quot;bar&quot;,</span><br><span class="line">    &quot;commandline&quot;: &quot;wsl.exe&quot;,</span><br><span class="line">    &quot;fontFace&quot;: &quot;Consolas&quot;,</span><br><span class="line">    &quot;fontSize&quot;: 12,</span><br><span class="line">    &quot;acrylicOpacity&quot;: 0.75,</span><br><span class="line">    &quot;useAcrylic&quot;: true,</span><br><span class="line">    &quot;closeOnExit&quot;: false,</span><br><span class="line">    &quot;padding&quot;: &quot;0, 0, 0, 0&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p><h2 id="二、体验"><a href="#二、体验" class="headerlink" title="二、体验"></a>二、体验</h2><p>使用上的感受，Windows Terminal是一个可以搭载CMD、Power Shell、WSL的平台，外观更加好看，支持子窗口。目前子窗口无法拖动更改顺序，主题配置也没有界面操作，只能通过更改json文件来实现。关于Windows Terminal对字体、表情更好的支持，还没有测试使用。</p>]]></content>
-      
-      
+      <tags>
+        <tag>paper</tag>
+        <tag>graphic symbol recognition</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Windows Terminal 预览</title>
+    <url>/2019/05/10/Windows-Terminal-%E9%A2%84%E8%A7%88/</url>
+    <content><![CDATA[<h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>微软在 Build 2019 宣布了新的命令行应用 Windows Terminal，支持 PowerShell、CMD、以及 Windows Subsystem for Linux（WSL）。</p>
+<p>Windows Terminal 支持多 Tabs 体验、系统主题、插件、GPU 渲染加速，完整支持 Unicode（东亚语言、Emoji 等）。</p>
+<p>目前Windows Terminal还没有提供正式版本，需要自己通过源码编译。</p>
+<h2 id="一、安装"><a href="#一、安装" class="headerlink" title="一、安装"></a>一、安装</h2><h3 id="1-下载项目"><a href="#1-下载项目" class="headerlink" title="1. 下载项目"></a>1. 下载项目</h3><p>首先，从GitHub上复制这个项目<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">git clone https://github.com/microsoft/Terminal.git</span><br><span class="line">git submodule update --init --recursive</span><br></pre></td></tr></table></figure></p>
+<h3 id="2-build-and-install"><a href="#2-build-and-install" class="headerlink" title="2. build and install"></a>2. build and install</h3><p>开发环境配置</p>
+<ul>
+<li>“Desktop Development with C++”</li>
+<li>“Universal Windows Platform Development”</li>
+<li>Windows 10 1903 SDK (10.0.18362.0)</li>
+<li>“v141 Toolset”</li>
+</ul>
+<p>Build 步骤 </p>
+<ol>
+<li>Visual Studio打开 <code>OpenConsole.sln</code> </li>
+<li>设置平台（<code>x86/x64</code>）和生成模式（<code>debug/release</code>），运行生成解决方案</li>
+<li>若出现报错error C2220，则将相关文件编码方式改为 <code>UTF-8</code>；main.cpp中换行符问题，则在str常量前加上前缀 <code>u8</code></li>
+<li>系统设置中 - 更新 - 开发者选项 - App sources更改为开发者模式</li>
+<li>右击 <code>Solution/Terminal/CascadiaPackage</code>，选择 <code>部署</code> 进行安装</li>
+</ol>
+<h3 id="3-设置"><a href="#3-设置" class="headerlink" title="3. 设置"></a>3. 设置</h3><p>在开始菜单可以找到 <code>Windows Terminal(Preview)</code> ，打开后还不能看到菜单按钮，摁下快捷键 <code>Ctrl + T</code> 新建一个子窗口，可以看到菜单栏，选择 <code>Settings</code> 可以修改 <code>profiles.json</code> 文件进行配置。    </p>
+<h3 id="4-添加-WSL"><a href="#4-添加-WSL" class="headerlink" title="4. 添加 WSL"></a>4. 添加 WSL</h3><ol>
+<li>Create a new session in <code>profiles</code>, with content copied from <code>profiles/cmd</code></li>
+<li>Give it a new <code>guid</code></li>
+<li>Give it a new <code>name</code>, such as <code>WSL</code></li>
+<li>Specify its <code>commandline</code> to <code>wsl.exe</code>    </li>
+</ol>
+<p>下拉菜单可以看到 <code>WSL</code> 选项，示例如下：<br><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    &quot;guid&quot;: &quot;&#123;09dc5eef-6840-4050-ae69-21e55e6a2e62&#125;&quot;,</span><br><span class="line">    &quot;name&quot;: &quot;WSL&quot;,</span><br><span class="line">    &quot;colorscheme&quot;: &quot;Campbell&quot;,</span><br><span class="line">    &quot;historySize&quot;: 9001,</span><br><span class="line">    &quot;snapOnInput&quot;: true,</span><br><span class="line">    &quot;cursorColor&quot;: &quot;#FFFFFF&quot;,</span><br><span class="line">    &quot;cursorShape&quot;: &quot;bar&quot;,</span><br><span class="line">    &quot;commandline&quot;: &quot;wsl.exe&quot;,</span><br><span class="line">    &quot;fontFace&quot;: &quot;Consolas&quot;,</span><br><span class="line">    &quot;fontSize&quot;: 12,</span><br><span class="line">    &quot;acrylicOpacity&quot;: 0.75,</span><br><span class="line">    &quot;useAcrylic&quot;: true,</span><br><span class="line">    &quot;closeOnExit&quot;: false,</span><br><span class="line">    &quot;padding&quot;: &quot;0, 0, 0, 0&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<h2 id="二、体验"><a href="#二、体验" class="headerlink" title="二、体验"></a>二、体验</h2><p>使用上的感受，Windows Terminal是一个可以搭载CMD、Power Shell、WSL的平台，外观更加好看，支持子窗口。目前子窗口无法拖动更改顺序，主题配置也没有界面操作，只能通过更改json文件来实现。关于Windows Terminal对字体、表情更好的支持，还没有测试使用。</p>
+]]></content>
       <categories>
-          
-          <category> Crabs </category>
-          
+        <category>Crabs</category>
       </categories>
-      
-      
-        <tags>
-            
-            <tag> tech </tag>
-            
-            <tag> utils </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    
-    
-    <entry>
-      <title>Object Detection API学习</title>
-      <link href="2019/05/07/Object-Detection-API%E5%AD%A6%E4%B9%A0/"/>
-      <url>2019/05/07/Object-Detection-API%E5%AD%A6%E4%B9%A0/</url>
-      
-        <content type="html"><![CDATA[]]></content>
-      
-      
+      <tags>
+        <tag>tech</tag>
+        <tag>utils</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Hexo博客搭建</title>
+    <url>/2019/05/06/hexo%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA/</url>
+    <content><![CDATA[<h2 id="一、环境配置"><a href="#一、环境配置" class="headerlink" title="一、环境配置"></a>一、环境配置</h2><ul>
+<li>Node.js 安装</li>
+<li>npm 安装Hexo</li>
+<li>Git 安装</li>
+</ul>
+<h3 id="1-1-从NVM安装Node-js和npm"><a href="#1-1-从NVM安装Node-js和npm" class="headerlink" title="1.1 从NVM安装Node.js和npm"></a>1.1 从NVM安装Node.js和npm</h3><p>NVM (Node Version Manager) 是一个 Bash 脚本，它允许你为每一个用户管理多个 Node.js 版本。使用 NVM，你可以随时安装或者卸载任何你想要使用或者测试的 Node.js版本。<br>浏览nvm页面，并且拷贝下面的curl或者wget命令去下载和安装nvm脚本：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash</span><br><span class="line">source ~/.profile</span><br></pre></td></tr></table></figure></p>
+<p>脚本将会从 Github 克隆项目到~/.nvm文件夹，不要使用 sudo 运行，因为这会为 root 用户启用nvm。运行命令验证安装是否正确：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">nvm --version</span><br></pre></td></tr></table></figure></p>
+<p>想要获取一系列 Node.js 版本，你可以使用nvm，运行：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">nvm list-remote</span><br></pre></td></tr></table></figure></p>
+<p>这个命令将会打印很多可用的 Node.js 版本。想要安装不同版本的 Node.js，运行：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">nvm install node  // 安装最新node版本</span><br><span class="line">nvm install --lts  // 安装最新长期版本</span><br><span class="line">nvm install 10.9.0  // 安装指定版本</span><br></pre></td></tr></table></figure></p>
+<p>输入以下命令列出安装的Node.js版本,选择切换版本：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">nvm ls //列出安装的版本</span><br><span class="line">nvm use 10.9.0  //修改当前适用版本</span><br><span class="line">nvm alias default 10.9.0  //修改默认Node.js版本</span><br></pre></td></tr></table></figure></p>
+<h3 id="1-2-npm安装hexo"><a href="#1-2-npm安装hexo" class="headerlink" title="1.2 npm安装hexo"></a>1.2 npm安装hexo</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">npm install hexo-cli -g</span><br><span class="line">hexo init blog</span><br><span class="line">cd blog</span><br><span class="line">npm install</span><br><span class="line">hexo server</span><br></pre></td></tr></table></figure>
+<h3 id="1-3-npm升级hexo"><a href="#1-3-npm升级hexo" class="headerlink" title="1.3 npm升级hexo"></a>1.3 npm升级hexo</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">1、全局升级hexo-cli，先hexo version查看当前版本，然后npm i hexo-cli -g，再次hexo version查看是否升级成功。</span><br><span class="line">2、使用npm install -g npm-check和npm-check，检查系统中的插件是否有升级的，可以看到自己前面都安装了那些插件</span><br><span class="line">3、使用npm install -g npm-upgrade和npm-upgrade，升级系统中的插件</span><br><span class="line">4、使用npm update -g和npm update --save</span><br></pre></td></tr></table></figure>
+<h2 id="二、链接GitHub"><a href="#二、链接GitHub" class="headerlink" title="二、链接GitHub"></a>二、链接GitHub</h2><ul>
+<li>创建username.github.io仓库</li>
+<li>绑定域名</li>
+</ul>
+<h3 id="2-1-hexo部署后需要重新更改域名问题"><a href="#2-1-hexo部署后需要重新更改域名问题" class="headerlink" title="2.1 hexo部署后需要重新更改域名问题"></a>2.1 hexo部署后需要重新更改域名问题</h3><blockquote>
+<p><strong>背景：</strong> 使用 Gitpage 功能将博客托管在了 github 上，并配置 <code>CNAME</code> 将自己的域名解析过去，在 Github 的仓库设置中开始 <code>custom domain</code> 的功能，这时候就可以直接使用自己的域名访问。<br>但是发现一个问题是，每次配置 <code>custom domain</code> 之后，再次 <code>hexo deploy</code> 之后，<code>custom domain</code> 会被重置失效。</p>
+</blockquote>
+<p><strong>解决方案：</strong> 在 hexo 生成的博客的 <code>source</code> 目录下新建一个 <code>CNAME</code> 文件，然后在这个文件中填入你的域名，这样就不会每次发布之后，Gitpage 里的 <code>custom domain</code> 都被重置掉。</p>
+<h2 id="三、主题设置"><a href="#三、主题设置" class="headerlink" title="三、主题设置"></a>三、主题设置</h2><ul>
+<li>主题配置说明</li>
+</ul>
+<h2 id="四、blog推送相关"><a href="#四、blog推送相关" class="headerlink" title="四、blog推送相关"></a>四、blog推送相关</h2><p>需求：在不同场所或电脑上实现对blog的更新维护<br>方案：<br>1.username.github.io仓库deploy的维护静态网页<br>2.新建一个代码仓库hexo_blog管理blog源代码文件</p>
+<h3 id="4-1-pull到本地仓库"><a href="#4-1-pull到本地仓库" class="headerlink" title="4.1 pull到本地仓库"></a>4.1 pull到本地仓库</h3><h4 id="新设备第一次Hexo"><a href="#新设备第一次Hexo" class="headerlink" title="新设备第一次Hexo"></a>新设备第一次Hexo</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git clone https://git.coding.net/&lt;yourname&gt;/Hexo-my.git</span><br></pre></td></tr></table></figure>
+<h4 id="Hexo环境准备"><a href="#Hexo环境准备" class="headerlink" title="Hexo环境准备"></a>Hexo环境准备</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">npm install</span><br></pre></td></tr></table></figure>
+<h4 id="Hexo仓库更新"><a href="#Hexo仓库更新" class="headerlink" title="Hexo仓库更新"></a>Hexo仓库更新</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git fetch --all #将git上所有文件拉取到本地</span><br><span class="line">git reset --hard origin/master  #强制将本地内容指向刚刚同步git云端内容</span><br></pre></td></tr></table></figure>
+<h3 id="4-2-Hexo编写和发布"><a href="#4-2-Hexo编写和发布" class="headerlink" title="4.2 Hexo编写和发布"></a>4.2 Hexo编写和发布</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">hexo g</span><br><span class="line">hexo s</span><br><span class="line">hexo d</span><br></pre></td></tr></table></figure>
+<h3 id="push到remote仓库"><a href="#push到remote仓库" class="headerlink" title="push到remote仓库"></a>push到remote仓库</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git remote add origin https://git.coding.net/&lt;yourname&gt;/Hexo-my.git</span><br><span class="line">git add .</span><br><span class="line">git commit -m "my first private hexo"</span><br><span class="line">git push -u origin master</span><br></pre></td></tr></table></figure>
+<h3 id="Tips：git无法添加子文件夹"><a href="#Tips：git无法添加子文件夹" class="headerlink" title="Tips：git无法添加子文件夹"></a>Tips：git无法添加子文件夹</h3><p>当子文件夹下包含有.git文件夹时，例如主题next文件夹，该文件夹将无法被Git跟踪，通过以下方法解决：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git rm --cached folder_path</span><br><span class="line">git add folder_path</span><br></pre></td></tr></table></figure></p>
+]]></content>
       <categories>
-          
-          <category> Framework </category>
-          
+        <category>Crabs</category>
       </categories>
-      
-      
-        <tags>
-            
-            <tag> deep learning </tag>
-            
-            <tag> object detection </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    
-    
-    <entry>
-      <title>Hexo博客搭建</title>
-      <link href="2019/05/06/hexo%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA/"/>
-      <url>2019/05/06/hexo%E5%8D%9A%E5%AE%A2%E6%90%AD%E5%BB%BA/</url>
-      
-        <content type="html"><![CDATA[<h2 id="一、环境配置"><a href="#一、环境配置" class="headerlink" title="一、环境配置"></a>一、环境配置</h2><ul><li>Node.js 安装</li><li>npm 安装Hexo</li><li>Git 安装</li></ul><h3 id="1-1-从NVM安装Node-js和npm"><a href="#1-1-从NVM安装Node-js和npm" class="headerlink" title="1.1 从NVM安装Node.js和npm"></a>1.1 从NVM安装Node.js和npm</h3><p>NVM (Node Version Manager) 是一个 Bash 脚本，它允许你为每一个用户管理多个 Node.js 版本。使用 NVM，你可以随时安装或者卸载任何你想要使用或者测试的 Node.js版本。<br>浏览nvm页面，并且拷贝下面的curl或者wget命令去下载和安装nvm脚本：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash</span><br><span class="line">source ~/.profile</span><br></pre></td></tr></table></figure></p><p>脚本将会从 Github 克隆项目到~/.nvm文件夹，不要使用 sudo 运行，因为这会为 root 用户启用nvm。运行命令验证安装是否正确：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nvm --version</span><br></pre></td></tr></table></figure></p><p>想要获取一系列 Node.js 版本，你可以使用nvm，运行：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nvm list-remote</span><br></pre></td></tr></table></figure></p><p>这个命令将会打印很多可用的 Node.js 版本。想要安装不同版本的 Node.js，运行：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">nvm install node  // 安装最新node版本</span><br><span class="line">nvm install --lts  // 安装最新长期版本</span><br><span class="line">nvm install 10.9.0  // 安装指定版本</span><br></pre></td></tr></table></figure></p><p>输入以下命令列出安装的Node.js版本,选择切换版本：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">nvm ls //列出安装的版本</span><br><span class="line">nvm use 10.9.0  //修改当前适用版本</span><br><span class="line">nvm alias default 10.9.0  //修改默认Node.js版本</span><br></pre></td></tr></table></figure></p><h3 id="1-2-npm安装hexo"><a href="#1-2-npm安装hexo" class="headerlink" title="1.2 npm安装hexo"></a>1.2 npm安装hexo</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">npm install hexo-cli -g</span><br><span class="line">hexo init blog</span><br><span class="line">cd blog</span><br><span class="line">npm install</span><br><span class="line">hexo server</span><br></pre></td></tr></table></figure><h3 id="1-3-npm升级hexo"><a href="#1-3-npm升级hexo" class="headerlink" title="1.3 npm升级hexo"></a>1.3 npm升级hexo</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1、全局升级hexo-cli，先hexo version查看当前版本，然后npm i hexo-cli -g，再次hexo version查看是否升级成功。</span><br><span class="line">2、使用npm install -g npm-check和npm-check，检查系统中的插件是否有升级的，可以看到自己前面都安装了那些插件</span><br><span class="line">3、使用npm install -g npm-upgrade和npm-upgrade，升级系统中的插件</span><br><span class="line">4、使用npm update -g和npm update --save</span><br></pre></td></tr></table></figure><h2 id="二、链接GitHub"><a href="#二、链接GitHub" class="headerlink" title="二、链接GitHub"></a>二、链接GitHub</h2><ul><li>创建username.github.io仓库</li><li>绑定域名</li></ul><h3 id="2-1-hexo部署后需要重新更改域名问题"><a href="#2-1-hexo部署后需要重新更改域名问题" class="headerlink" title="2.1 hexo部署后需要重新更改域名问题"></a>2.1 hexo部署后需要重新更改域名问题</h3><blockquote><p><strong>背景：</strong> 使用 Gitpage 功能将博客托管在了 github 上，并配置 <code>CNAME</code> 将自己的域名解析过去，在 Github 的仓库设置中开始 <code>custom domain</code> 的功能，这时候就可以直接使用自己的域名访问。<br>但是发现一个问题是，每次配置 <code>custom domain</code> 之后，再次 <code>hexo deploy</code> 之后，<code>custom domain</code> 会被重置失效。</p></blockquote><p><strong>解决方案：</strong> 在 hexo 生成的博客的 <code>source</code> 目录下新建一个 <code>CNAME</code> 文件，然后在这个文件中填入你的域名，这样就不会每次发布之后，Gitpage 里的 <code>custom domain</code> 都被重置掉。</p><h2 id="三、主题设置"><a href="#三、主题设置" class="headerlink" title="三、主题设置"></a>三、主题设置</h2><ul><li>主题配置说明</li></ul><h2 id="四、blog推送相关"><a href="#四、blog推送相关" class="headerlink" title="四、blog推送相关"></a>四、blog推送相关</h2><p>需求：在不同场所或电脑上实现对blog的更新维护<br>方案：<br>1.username.github.io仓库deploy的维护静态网页<br>2.新建一个代码仓库hexo_blog管理blog源代码文件</p><h3 id="4-1-pull到本地仓库"><a href="#4-1-pull到本地仓库" class="headerlink" title="4.1 pull到本地仓库"></a>4.1 pull到本地仓库</h3><h4 id="新设备第一次Hexo"><a href="#新设备第一次Hexo" class="headerlink" title="新设备第一次Hexo"></a>新设备第一次Hexo</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone https://git.coding.net/&lt;yourname&gt;/Hexo-my.git</span><br></pre></td></tr></table></figure><h4 id="Hexo环境准备"><a href="#Hexo环境准备" class="headerlink" title="Hexo环境准备"></a>Hexo环境准备</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install</span><br></pre></td></tr></table></figure><h4 id="Hexo仓库更新"><a href="#Hexo仓库更新" class="headerlink" title="Hexo仓库更新"></a>Hexo仓库更新</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git fetch --all #将git上所有文件拉取到本地</span><br><span class="line">git reset --hard origin/master  #强制将本地内容指向刚刚同步git云端内容</span><br></pre></td></tr></table></figure><h3 id="4-2-Hexo编写和发布"><a href="#4-2-Hexo编写和发布" class="headerlink" title="4.2 Hexo编写和发布"></a>4.2 Hexo编写和发布</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">hexo g</span><br><span class="line">hexo s</span><br><span class="line">hexo d</span><br></pre></td></tr></table></figure><h3 id="push到remote仓库"><a href="#push到remote仓库" class="headerlink" title="push到remote仓库"></a>push到remote仓库</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">git remote add origin https://git.coding.net/&lt;yourname&gt;/Hexo-my.git</span><br><span class="line">git add .</span><br><span class="line">git commit -m "my first private hexo"</span><br><span class="line">git push -u origin master</span><br></pre></td></tr></table></figure><h3 id="Tips：git无法添加子文件夹"><a href="#Tips：git无法添加子文件夹" class="headerlink" title="Tips：git无法添加子文件夹"></a>Tips：git无法添加子文件夹</h3><p>当子文件夹下包含有.git文件夹时，例如主题next文件夹，该文件夹将无法被Git跟踪，通过以下方法解决：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git rm --cached folder_path</span><br><span class="line">git add folder_path</span><br></pre></td></tr></table></figure></p>]]></content>
-      
-      
+      <tags>
+        <tag>tech</tag>
+        <tag>web</tag>
+        <tag>hexo</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>vscode下预览hexo博客</title>
+    <url>/2020/09/13/vscode%E4%B8%8B%E9%A2%84%E8%A7%88hexo%E5%8D%9A%E5%AE%A2/</url>
+    <content><![CDATA[<p>在使用VS Code编辑hexo博客的过程中，使用markdown预览会出现问题，vscode自带的markdown渲染的效果与网页上显示的不一致，查阅了一些文章，找到一个合适的插件——<code>markdown-preview-enchanced</code></p>
+<p>总的来说，这个插件能够实现以下功能：</p>
+<ul>
+<li>实时预览，可以自动生成目录链接辅助查看</li>
+<li>支持主要的markdown语法，文章结构和hexo生成的基本一致</li>
+<li>支持mathjax</li>
+<li>支持pandoc渲染，可以将hexo换成pandoc进行render，使得线上与线下预览效果一致</li>
+</ul>
+<h2 id="一、插件配置"><a href="#一、插件配置" class="headerlink" title="一、插件配置"></a>一、插件配置</h2><h3 id="1-1-插件安装"><a href="#1-1-插件安装" class="headerlink" title="1.1 插件安装"></a>1.1 插件安装</h3><p><code>markdown-preview-enhanced</code>插件安装：</p>
+<p>vs code的extension marketplace中搜索markdown-preview-enhanced，安装插件，并进入设置进行插件配置。</p>
+<p><code>Pandoc</code>安装：<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">suo apt-get install pandoc</span><br></pre></td></tr></table></figure></p>
+<h3 id="1-2-配置修改"><a href="#1-2-配置修改" class="headerlink" title="1.2 配置修改"></a>1.2 配置修改</h3><ol>
+<li>搜索<code>Automatically Show Preview Of Markdown Being Edited</code>，勾选该选项设置自动预览。</li>
+<li>搜索<code>Math Rendering Option</code>,将选项更改为<code>MathJax</code>。</li>
+<li>搜索<code>Use Pandoc Parser</code>,勾选该选项使用<code>Pandoc</code>进行渲染。</li>
+</ol>
+<h2 id="二、代码块写法"><a href="#二、代码块写法" class="headerlink" title="二、代码块写法"></a>二、代码块写法</h2><p>之前使用的都是<figure class="highlight plain"><figcaption><span>``` `来标识，看了些文章发现代码块还有多种写法，在这儿记录一下。</span></figcaption><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">### 2.1 正常写法</span><br></pre></td></tr></table></figure></p>
+ <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">code snippet</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">### 2.2 进阶写法</span><br></pre></td></tr></table></figure>
+ <figure class="highlight plain"><figcaption><span>[title] [url] [link text]</span></figcaption><table><tr><td class="code"><pre><span class="line">code snippet</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&gt; 参数含义如下：</span><br><span class="line">&gt;</span><br><span class="line">&gt; - language: 代码语言名称</span><br><span class="line">&gt; - title: 代码块标题，显示在左上角</span><br><span class="line">&gt; - url: 链接地址</span><br><span class="line">&gt; - link text: 链接名称，制定url后有效</span><br><span class="line"></span><br><span class="line">### 示例</span><br></pre></td></tr></table></figure>
+ <figure class="highlight java"><figcaption><span>/root/Demo.java</span></figcaption><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Demo</span></span>&#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">效果如下：</span><br><span class="line">```java /root/Demo.java</span><br><span class="line">public class Demo&#123;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+]]></content>
       <categories>
-          
-          <category> Crabs </category>
-          
+        <category>Crabs</category>
       </categories>
-      
-      
-        <tags>
-            
-            <tag> tech </tag>
-            
-            <tag> web </tag>
-            
-        </tags>
-      
-    </entry>
-    
-    
-  
-  
+      <tags>
+        <tag>tech</tag>
+        <tag>web</tag>
+        <tag>hexo</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>模板匹配（Template Matching）</title>
+    <url>/2019/05/18/%E6%A8%A1%E6%9D%BF%E5%8C%B9%E9%85%8D%EF%BC%88Template-Matching%EF%BC%89/</url>
+    <content><![CDATA[<h2 id="一、简介"><a href="#一、简介" class="headerlink" title="一、简介"></a>一、简介</h2><p>模板匹配技术是使用一个模板来表示被搜索的物体，通过计算模板的所有相关位姿与图像各个位置之间的<strong>相似度</strong>（<em>可以用不同方式定义，例如基于模板和图像的灰度值或基于模板边缘与图像边缘的接近程度</em>），来确定是否在图像中找到该模板。<br>模板匹配可以应用在许多场合：完整性检测、物体识别、目标物体在图像中的位姿等。</p>
+<h2 id="二、算法"><a href="#二、算法" class="headerlink" title="二、算法"></a>二、算法</h2><h3 id="2-1-基于灰度值的模板匹配"><a href="#2-1-基于灰度值的模板匹配" class="headerlink" title="2.1 基于灰度值的模板匹配"></a>2.1 基于灰度值的模板匹配</h3><p>为了计算模板与图像位置$(r,c)$处灰度值之间的度量关系，得到原始图像中每个点处对应的度量值，定义一个基于灰度的相似度量函数$s$：</p>
+<p>$$s(r,c)=s{t(u,v),f(r+u,c+v);(u,v)\in T}$$</p>
+<p>计算模板与图像之间差值的绝对值总和或所有差值的平方和（SAD和SSD），在这两个等式中n是模板感兴趣区域点的个数，如果模板和图像是相同的，则计算度量为0，若不同将大于0，该度量适用于<strong>光照不发生变化</strong>的情况下。</p>
+<p>$$<br>sad(r,c)=\cfrac{1}{n} \sum \left | t(u,v)-f(r+u,c+v) \right| \<br>ssd(r,c)=\cfrac{1}{n} \sum \left [ t(u,v)-f(r+u,c+v) \right]^2 \<br>$$</p>
+<p>针对光照变化的情况下，归一化互相关系数（NCC）能够达到不随任何线性的光照变化而变化的要求，归一化互相关系数$ncc(r,c)$的取值范围是[-1,1],如果$ncc(r,c)=\pm 1$，图像就是模板的一个线性比例版本。等式如下：</p>
+<p>$$<br>ncc(r,c)=\cfrac{1}{n} \sum \cfrac{t(u,v)-m_t}{\sqrt{s^2_t}} \cdot \cfrac{f(r+u,c+v)-m_f(r,c)}{\sqrt{s^2_f(r,c)}} \<br>m_t=\cfrac{1}{n} \sum  t(u,v) \<br>s^2_t = \cfrac{1}{n} \sum  [t(u,v)-m_t]^2 \<br>m_f(r,c) = \cfrac{1}{n} \sum f(r+u,c+v) \<br>s^2_f(r,c) = \cfrac{1}{n} \sum [f(r+u,c+v)-m_f(r,c)]^2<br>$$</p>
+<p>该算法的时间复杂度是$O(whn)$，其中 $w$ 和 $h$ 是图像的宽和高，$n$ 是模板中点的数量。可以使用停止标准，即在确定不可能达到阈值的情况下停止相似度量的计算，进行提速优化，但这无法改变该算法的复杂度。</p>
+<h3 id="2-2-使用图形金字塔进行匹配"><a href="#2-2-使用图形金字塔进行匹配" class="headerlink" title="2.2 使用图形金字塔进行匹配"></a>2.2 使用图形金字塔进行匹配</h3><p>一种提高搜索速度的方法是先只考虑图像和模板中间隔为i的点集，以得到模板的大概位姿，随后用间隔更小的点集在大概位姿周围进行进一步搜索得到更精准的结果，这种策略相当于对模板进行二次抽样。<br>我们将图像与模板多次缩小2倍建立起来的数据结构成为<strong>图像金字塔</strong>，在构建金字塔的过程中常使用 $2 \times 2$ 的均值滤波器来平滑图像。基于图像金字塔，可以定义如下的分层搜索策略：</p>
+<ol>
+<li>计算搜索图像和模板适当层数的图像金字塔</li>
+<li>在最高层金字塔上进行一次完整的匹配</li>
+<li>将高层中的匹配结果映射到金字塔中的下一层，并选取匹配结果周围的一个区域作为新的搜索区域</li>
+</ol>
+<p>在图像金字塔中层数越高，使用的匹配阈值需越宽松。</p>
+<h3 id="2-3-基于灰度值的亚像素精度匹配"><a href="#2-3-基于灰度值的亚像素精度匹配" class="headerlink" title="2.3 基于灰度值的亚像素精度匹配"></a>2.3 基于灰度值的亚像素精度匹配</h3><h3 id="2-4-带旋转与缩放的模板匹配"><a href="#2-4-带旋转与缩放的模板匹配" class="headerlink" title="2.4 带旋转与缩放的模板匹配"></a>2.4 带旋转与缩放的模板匹配</h3>]]></content>
+      <categories>
+        <category>Algorithm</category>
+      </categories>
+      <tags>
+        <tag>computer vision</tag>
+      </tags>
+  </entry>
 </search>
