@@ -104,7 +104,7 @@
 <meta property="og:site_name" content="cFireworks">
 <meta property="og:description" content="在使用VS Code编辑hexo博客的过程中，使用markdown预览会出现问题，vscode自带的markdown渲染的效果与网页上显示的不一致，查阅了一些文章，找到一个合适的插件——markdown-preview-enchanced 总的来说，这个插件能够实现以下功能：  实时预览，可以自动生成目录链接辅助查看 支持主要的markdown语法，文章结构和hexo生成的基本一致 支持mathj">
 <meta property="og:locale" content="en">
-<meta property="og:updated_time" content="2020-09-26T09:00:52.570Z">
+<meta property="og:updated_time" content="2020-09-26T09:03:14.554Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="vscode下预览hexo博客">
 <meta name="twitter:description" content="在使用VS Code编辑hexo博客的过程中，使用markdown预览会出现问题，vscode自带的markdown渲染的效果与网页上显示的不一致，查阅了一些文章，找到一个合适的插件——markdown-preview-enchanced 总的来说，这个插件能够实现以下功能：  实时预览，可以自动生成目录链接辅助查看 支持主要的markdown语法，文章结构和hexo生成的基本一致 支持mathj">
@@ -430,7 +430,7 @@
                 
                   <span class="post-meta-item-text">Edited on</span>
                 
-                <time title="Modified: 2020-09-26 17:00:52" itemprop="dateModified" datetime="2020-09-26T17:00:52+08:00">2020-09-26</time>
+                <time title="Modified: 2020-09-26 17:03:14" itemprop="dateModified" datetime="2020-09-26T17:03:14+08:00">2020-09-26</time>
               
             
           </span>
@@ -509,8 +509,7 @@
 <li>搜索<code>Math Rendering Option</code>,将选项更改为<code>MathJax</code>。</li>
 <li>搜索<code>Use Pandoc Parser</code>,勾选该选项使用<code>Pandoc</code>进行渲染。</li>
 </ol>
-<h2 id="二、代码块写法"><a href="#二、代码块写法" class="headerlink" title="二、代码块写法"></a>二、代码块写法</h2><p>之前使用的都是<code>code_block</code>的写法来标识代码块，这个并不能在普通的markdown预览中显示，通常的代码块是使用 ` <figure class="highlight plain"><figcaption><span>来标识，看了些文章发现代码块还有多种写法，在这儿记录一下。</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">### 2.1 正常写法</span><br></pre></td></tr></table></figure></p>
- <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">code snippet</span><br></pre></td></tr></table></figure>
+<h2 id="二、代码块写法"><a href="#二、代码块写法" class="headerlink" title="二、代码块写法"></a>二、代码块写法</h2><p>之前使用的都是<code>code_block</code>的写法来标识代码块，这个并不能在普通的markdown预览中显示，通常的代码块是使用<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">### 2.1 正常写法</span><br><span class="line">```</span><br><span class="line"> ```` [language]</span><br><span class="line"> code snippet</span><br></pre></td></tr></table></figure></p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">### 2.2 进阶写法</span><br></pre></td></tr></table></figure>
  <figure class="highlight plain"><figcaption><span>[title] [url] [link text]</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">code snippet</span><br></pre></td></tr></table></figure>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&gt; 参数含义如下：</span><br><span class="line">&gt;</span><br><span class="line">&gt; - language: 代码语言名称</span><br><span class="line">&gt; - title: 代码块标题，显示在左上角</span><br><span class="line">&gt; - url: 链接地址</span><br><span class="line">&gt; - link text: 链接名称，制定url后有效</span><br><span class="line"></span><br><span class="line">### 示例</span><br></pre></td></tr></table></figure>
