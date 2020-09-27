@@ -291,6 +291,19 @@
       </tags>
   </entry>
   <entry>
+    <title>内存管理（一）：物理内存页的管理</title>
+    <url>/2020/09/26/%E5%86%85%E5%AD%98%E7%AE%A1%E7%90%86%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E7%89%A9%E7%90%86%E5%86%85%E5%AD%98%E9%A1%B5%E7%9A%84%E7%AE%A1%E7%90%86/</url>
+    <content><![CDATA[<p>操作系统中的存储管理器负责有效地管理内存，记录哪些内存正在使用、哪些内存是空闲的，在进程需要时进行内存分配，进程使用完后释放内存。为了实现这个目的，有许多不同的内存管理方案，本篇文章将从物理内存的视角来看不同内存管理方案中的处理策略。</p>
+]]></content>
+      <categories>
+        <category>操作系统</category>
+      </categories>
+      <tags>
+        <tag>tech</tag>
+        <tag>linux</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>模板匹配（Template Matching）</title>
     <url>/2019/05/18/%E6%A8%A1%E6%9D%BF%E5%8C%B9%E9%85%8D%EF%BC%88Template-Matching%EF%BC%89/</url>
     <content><![CDATA[<h2 id="一、简介"><a href="#一、简介" class="headerlink" title="一、简介"></a>一、简介</h2><p>模板匹配技术是使用一个模板来表示被搜索的物体，通过计算模板的所有相关位姿与图像各个位置之间的<strong>相似度</strong>（<em>可以用不同方式定义，例如基于模板和图像的灰度值或基于模板边缘与图像边缘的接近程度</em>），来确定是否在图像中找到该模板。<br>模板匹配可以应用在许多场合：完整性检测、物体识别、目标物体在图像中的位姿等。</p>
@@ -314,6 +327,26 @@
       </categories>
       <tags>
         <tag>computer vision</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>非root用户安装GCC教程</title>
+    <url>/2020/09/27/%E9%9D%9Eroot%E7%94%A8%E6%88%B7%E5%AE%89%E8%A3%85GCC%E6%95%99%E7%A8%8B/</url>
+    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>通常服务器上自带的<code>GCC</code>版本较低，到目前为止最新的版本已经到了<code>gcc-10.2</code>，(下载地址：<a href="http://ftp.gnu.org/gnu/gcc/)有的项目编译需要我们使用较高版本的`GCC`，这时需要我们自己手动安装一个，本文将介绍关于在服务器上非root用户如何安装`GCC`" target="_blank" rel="noopener">http://ftp.gnu.org/gnu/gcc/)有的项目编译需要我们使用较高版本的`GCC`，这时需要我们自己手动安装一个，本文将介绍关于在服务器上非root用户如何安装`GCC`</a>.</p>
+<p>安装<code>GCC</code>主要依赖三个库：<code>GMP</code>,<code>MPFR</code>和<code>MPC</code>,另外相关的一个是<code>ISL</code>库，在老版本的GCC安装时需要手动安装这些依赖库，但较新版本的<code>GCC</code>安装只需要在GCC目录下运行<code>./contrib/download_prerequistites</code>命令就可以自动下载这几个组件。</p>
+<p>另外一点和其他软件不同的地方在于，<code>GCC</code>不能直接在其源码中编译，而是在它的目录下新建一个文件夹，然后进入这个文件夹配置并编译安装。</p>
+<h2 id="一、安装"><a href="#一、安装" class="headerlink" title="一、安装"></a>一、安装</h2><p>首先，下载相应版本的GCC<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">wget http://ftp.gnu.org/gnu/gcc/gcc-9.1.0/gcc-9.1.0.tar.gz</span><br><span class="line">tar -xvf gcc-9.1.0.tar.gz</span><br></pre></td></tr></table></figure></p>
+<p>第二步，进行编译配置,执行编译<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span> 新建安装路径</span><br><span class="line">mkdir gcc9</span><br><span class="line">cd gcc-9.1.0</span><br><span class="line"><span class="meta">#</span> 安装依赖</span><br><span class="line">./contrib/download_prerequisites </span><br><span class="line"><span class="meta">#</span> 作为编译路径，不能直接在源码中编译</span><br><span class="line">mkdir gcc-9.1.0</span><br><span class="line"><span class="meta">#</span> 配置</span><br><span class="line">../configure --disable-checking --enable-languages=c,c++ --disable-multilib --prefix=/path/to/software/gcc9 --enable-threads=posix</span><br><span class="line"><span class="meta">#</span> 执行编译</span><br><span class="line">make -j32 &amp;&amp; make install</span><br></pre></td></tr></table></figure></p>
+<p>第三步，添加环境变量，覆盖旧版本<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line"><span class="meta">#</span>路径要在环境变量前</span><br><span class="line">export PATH=/path/to/software/gcc9/bin:/path/to/software/gcc9/lib64:$PATH</span><br><span class="line">export LD_LIBRARY_PATH=/path/to/software/gcc9/lib/:$LD_LIBRARY_PATH</span><br></pre></td></tr></table></figure></p>
+<p>补充环境变量设置<br><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">1.gcc/g++等程序本身的路径</span><br><span class="line">export PATH=$PATH:/install/bin</span><br><span class="line"><span class="meta">#</span>注:/install为安装目录,下同</span><br><span class="line"></span><br><span class="line">2.gcc头文件路径</span><br><span class="line">export C_INCLUDE_PATH=$C_INCLUDE_PATH:/install/include</span><br><span class="line"></span><br><span class="line">3.g++头文件路径</span><br><span class="line">export CPLUS_INCLUDE_PATH=$CPLUS_INCLUDE_PATH:/install/include</span><br><span class="line"></span><br><span class="line">4.动态链接库路径</span><br><span class="line">export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/install/lib64</span><br><span class="line"></span><br><span class="line">5.静态库路径</span><br><span class="line">export LIBRARY_PATH=$LIBRARY_PATH:/install/lib</span><br></pre></td></tr></table></figure></p>
+]]></content>
+      <categories>
+        <category>开发环境配置</category>
+      </categories>
+      <tags>
+        <tag>tech</tag>
+        <tag>linux</tag>
+        <tag>gcc</tag>
       </tags>
   </entry>
 </search>
