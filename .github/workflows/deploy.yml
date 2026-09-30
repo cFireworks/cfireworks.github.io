@@ -1,0 +1,41 @@
+name: 部署博客到 GitHub Pages
+
+on:
+  push:
+    branches:
+      - cursor/revive-blog-2edd  # 当前开发分支
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 获取完整历史，用于 git info
+
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 构建静态文件
+        run: npx hexo generate
+
+      - name: 部署到 master 分支
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+          publish_branch: master
+          force_orphan: false  # 保留 master 分支历史
+          commit_message: "博客自动部署: ${{ github.event.head_commit.message }}"
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
