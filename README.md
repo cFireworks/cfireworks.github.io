@@ -6,6 +6,8 @@
 
 **博客地址**：https://cfireworks.github.io
 
+**默认分支**：`main`（2026-09-30 迁移）
+
 ## 特色
 
 - 🔥 **热点技术**：紧跟 AI Agent 和 LLM 领域最新发展
