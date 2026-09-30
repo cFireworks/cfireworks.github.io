@@ -94,14 +94,34 @@ npx hexo new post "文章标题"
 
 ## 自动部署
 
-本仓库配置了 GitHub Actions 自动部署：
+本仓库使用 GitHub Actions 自动部署到 GitHub Pages。
 
-1. 提交代码到 `cursor/revive-blog-2edd` 分支（或其他源码分支）
+### 首次配置（重要）
+
+**必须在仓库设置中启用 GitHub Actions 部署：**
+
+1. 访问仓库 Settings → Pages
+2. 在 **Source** 下拉菜单中选择 **GitHub Actions**（而不是 "Deploy from a branch"）
+3. 保存设置
+
+> ⚠️ **用户站点（如 cfireworks.github.io）必须使用 GitHub Actions 部署方式**，才能让源码保留在 master 分支，同时自动部署构建产物。
+
+### 部署流程
+
+1. 提交代码到 `master` 分支
 2. GitHub Actions 自动构建 Hexo 静态文件
-3. 部署到 `master` 分支
-4. GitHub Pages 自动更新网站
+3. 自动部署到 GitHub Pages
+4. 网站自动更新
 
 **部署时间**：推送后约 2-5 分钟可在网站看到更新
+
+### 手动触发部署
+
+除了推送代码外，也可以在 Actions 页面手动触发部署：
+
+1. 访问 [Actions](https://github.com/cFireworks/cfireworks.github.io/actions)
+2. 选择 "部署博客到 GitHub Pages" 工作流
+3. 点击 "Run workflow"
 
 ## 目录结构
 
