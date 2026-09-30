@@ -108,11 +108,3 @@ theme: next
 ## Docs: https://hexo.io/docs/one-command-deployment
 deploy:
   type: ''
-
-# Mermaid diagrams
-mermaid:
-  enable: true
-  version: "10.6.1"
-  theme:
-    light: default
-    dark: dark
