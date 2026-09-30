@@ -15,7 +15,7 @@ tags:
 
 > 本文写于 2026 年 9 月，回溯 2025 年底至 2026 年上半年 Coding Agent 快速工程化阶段的核心技术议题。
 
-2025 年下半年起，终端 AI 编程助手从「代码补全」迅速进化到「自主执行任务」。Claude Code、Qwen Code、OpenCode 等项目陆续开源或泄漏源码，社区讨论的焦点从「模型能不能写好代码」转向了一个更工程化的问题：**如何让 Agent 长时间、可控、安全地代替人操作开发环境？**
+2025 年下半年起，终端 AI 编程助手从「代码补全」迅速进化到「自主执行任务」。Claude Code、Qwen Code、OpenCode 等项目陆续开源或进入公开讨论，社区焦点从「模型能不能写好代码」转向了一个更工程化的问题：**如何让 Agent 长时间、可控、安全地代替人操作开发环境？**
 
 答案不在模型本身，而在 **harness**（执行壳体）与 **sandbox**（沙箱隔离）。
 
@@ -302,10 +302,10 @@ Harness 提供了组织 Agent 行为的框架（工具调用、状态管理、�
 
 ## 扩展阅读
 
-- [Anthropic Sandbox Runtime 文档](https://github.com/anthropics/sandbox-runtime)（虚构链接，实际以公开资料为准）
-- [Bubblewrap 容器化指南](https://github.com/containers/bubblewrap)
-- [MCP 安全最佳实践](https://modelcontextprotocol.io/security)（虚构链接）
-- OpenCode / Qwen Code / DeepSeek Harness 等开源项目的安全设计文档
+- [Bubblewrap](https://github.com/containers/bubblewrap) - 轻量级 Linux 容器沙箱实现
+- [Model Context Protocol](https://modelcontextprotocol.io/) - Agent 工具调用协议标准
+- Anthropic Sandbox Runtime - Anthropic 在公开技术讨论中提及的沙箱运行时方案
+- OpenCode / Qwen Code / DeepSeek Harness - 社区开源 Coding Agent 框架的安全设计可参考各项目官方文档
 
 ---
 
