@@ -156,7 +156,7 @@ graph LR
 ```bash
 # 生成并部署到 GitHub Pages
 hexo clean
-hexos generate
+hexo generate
 hexo deploy
 
 # 提交源码到私有仓库
