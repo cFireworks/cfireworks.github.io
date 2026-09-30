@@ -1,5 +1,5 @@
 ---
-title: Coding Agent 的沙箱边界：隔离，权限与失败模式
+title: Coding Agent 的沙箱边界：隔离、权限与失败模式
 date: 2026-10-01 20:00:00
 retrospective: true
 retrospective_of: 2026-01
@@ -504,7 +504,7 @@ Coding Agent 的沙箱安全不是单一技术问题，而是**隔离技术，�
 ## 延伸阅读
 
 - [Bubblewrap](https://github.com/containers/bubblewrap) - 轻量级 Linux 容器沙箱
-- [Anthropic Sandbox Runtime](https://www.anthropic.com/research/building-effective-agents) - Anthropic 公开讨论的沙箱运行时方案
+- [Anthropic Sandbox Runtime](https://github.com/anthropics/sandbox-runtime) - Anthropic 开源的沙箱运行时实现
 - [gVisor](https://gvisor.dev/) - Google 用户态内核沙箱
 - [E2B](https://e2b.dev/) - 为 AI Agent 设计的云沙箱环境
 - [WASI](https://wasi.dev/) - WebAssembly 系统接口标准
