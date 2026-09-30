@@ -1,0 +1,10 @@
+# NexT 主题配置覆盖
+# 文档: https://theme-next.js.org/docs/
+
+# 启用 Mermaid 图表
+mermaid:
+  enable: true
+  # Available themes: default | dark | forest | neutral
+  theme:
+    light: default
+    dark: dark
