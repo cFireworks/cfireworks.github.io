@@ -565,6 +565,25 @@ print(f"FLANN 匹配: {time.time() - start:.3f}s")  # ~0.01-0.05s
 
 **共通的工程哲学**：不是「传统 vs 深度学习」的对立，而是**根据任务特性、数据规模、计算资源选择合适的工具**。
 
+## 延伸阅读
+
+### 经典论文
+
+- **SIFT 论文**：[Object Recognition from Local Scale-Invariant Features](https://www.cs.ubc.ca/~lowe/papers/iccv99.pdf)（Lowe, ICCV 1999）/ [Distinctive Image Features from Scale-Invariant Keypoints](https://www.cs.ubc.ca/~lowe/papers/ijcv04.pdf)（IJCV 2004）
+- **ORB 论文**：[ORB: an efficient alternative to SIFT or SURF](https://www.willowgarage.com/sites/default/files/orb_final.pdf)（Rublee et al., ICCV 2011）
+- **Harris 角点**：[A Combined Corner and Edge Detector](http://www.bmva.org/bmvc/1988/avc-88-023.pdf)（Harris & Stephens, 1988）
+
+### 工具与文档
+
+- **OpenCV 官方文档**：[https://docs.opencv.org/](https://docs.opencv.org/)（特征检测教程：[Feature Detection and Description](https://docs.opencv.org/4.x/db/d27/tutorial_py_table_of_contents_feature2d.html)）
+- **VLFeat SIFT 实现**：[https://www.vlfeat.org/overview/sift.html](https://www.vlfeat.org/overview/sift.html)（含算法详解与可视化）
+- **Gasyori100knock**：[https://github.com/yoyoyo-yo/Gasyori100knock](https://github.com/yoyoyo-yo/Gasyori100knock)（图像处理 100 问练习项目）
+
+### 开源实现
+
+- **OpenCV GitHub**：[https://github.com/opencv/opencv](https://github.com/opencv/opencv)
+- **scikit-image**：[https://scikit-image.org/](https://scikit-image.org/)（Python 图像处理库）
+
 ## 写在最后：2026 多模态时代的冷静对照
 
 2026 年，多模态大模型（如 GPT-4V、Gemini）已经可以端到端完成「图像 → 文字描述 → 语义理解」，甚至不需要显式的特征提取。但：
