@@ -6,7 +6,6 @@ node_modules/
 public/
 .deploy*/
 _multiconfig.yml
-package-lock.json
 
 # 旧站点备份（仅供参考，不提交）
 old-site/
