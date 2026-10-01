@@ -1,353 +1,451 @@
 ---
-title: 从 Coding Session 到 Always-on：Agent Harness 还缺什么
+title: Always-on 的第一性原理：责任、时间、电脑与闸门
 date: 2026-10-01 12:30:00
 categories:
   - AI Agent
 tags:
   - Always-on
+  - 第一性原理
   - Agent Harness
-  - OpenCode
-  - Codex
-  - 技术探究
+  - 辩证分析
+  - 技术洞见
 ---
 
-2025–2026 年，个人 AI 助手从「对话回答」演进到「任务交付」，再进一步到 **always-on agent**：常驻云端电脑、跨会话记忆、后台/定时/事件触发、多 Bot 协作，以及对外发信/支付等敏感动作的确认闸门。
+2026 年，个人 AI 助手从「对话回答」演进到「任务交付」，再到 **always-on agent**。产品宣传页上铺满了功能对照表：后台运行、定时任务、多 agent 协作、云端电脑。但对照表解释不了一个残酷的事实——为什么 Dots、Muse、Grok Bot 这样的 always-on 产品，与 OpenCode、Codex 这样的 coding session 之间，隔着的不是「跑久一点」，而是系统工程的鸿沟？
 
-但 always-on 不是把 OpenCode 或 Codex 这样的 coding agent 跑久一点就能实现的。核心差距在 **harness 层**：从「一次性会话」到「常驻同事」，缺的不是更强的单轮推理，而是持久记忆、调度、长生命周期沙箱、连接器鉴权持久化、send-on-behalf 闸门、子代理并行、不可信工具结果隔离，以及 always-on 成本预算。
+答案藏在第一性原理里。Always-on 卖的不是功能清单，而是 **可达性**（reachable）与 **责任归属**（accountability）。当我们把这个概念拆开，会发现四条裂缝：**单位**（Task vs Responsibility）、**时间**（成本函数与空转）、**空间**（长寿命电脑与可靠性上限）、**权限**（trifecta 与闸门机制）。每条裂缝背后，都是产品宣称与工程可实现性之间的张力。
 
 <!-- more -->
 
-## Always-on 不是同一品类
+## 一、对照表为什么不够
 
-市面上有三类容易混淆的产品：
+前作以产品对照表开篇：会话生命周期、是否常驻、独立电脑、定时触发、记忆持久化、对外发消息权限、多 agent、与编码关系。九个维度，三类产品（always-on、通用任务 agent、办公 agent），一张表看上去清晰。
 
-### 1. Personal always-on assistant
+但这张表回答不了三个问题：
 
-代表：OpenAI Dots、Meta Muse、xAI/Cursor Grok Bot
+1. **单位问题**：Dots 说「交给责任而非 prompt」，Grok Bot 说「有名字、有工作、上下文会积累」——但 Grok 的所有 Bot 共享一台云电脑（文件、浏览器会话、登录态），Dots 和 Muse 则每 agent 独立 VM。「责任」这个单位，在工程上究竟对应什么？session 可以很长，但 session 不是责任；Identity 可以命名，但身份不是凭证。
+2. **成本问题**：always-on 的账单大头常不是干活本身，而是 **空闲心跳重发全量上下文**。Cognio 的建模（基于 OpenClaw 默认与 Anthropic 公开价格）显示：30 个 Opus 级 always-on 的心跳成本可建模到约 $4,644/月，其中 idle 可占 74–97%。这与「是否常驻后台」（对照表第二行）是同一件事吗？显然不是——常在线不等于必须主动打扰，但默认实现常把两者捆绑销售。
+3. **能力问题**：Anthropic 的 computer-use 是 **动作原语**（截图、键鼠），OSWorld 2.0 基准上 SOTA 二进制完成率仍约 20.6%（Claude Opus 4.8），超长任务（>163 分钟）档完成率降到 **0**。「独立电脑/沙箱」（对照表第三行）描述的是配置，不是能力上限；computer-use 是 **如何动手**，always-on 是 **何时动手、在谁的机器上、用谁的凭证、失败如何审计、空闲如何计费**。
 
-**一句话**：常在线个人助手，有独立或共享云电脑，工作可在你离线时继续，强调责任归属与审批。
+对照表的局限在于：它把 always-on 当作功能的累加，而不是 **系统属性**。LongHorizon-Harness 论文的核心命题是：agent 能力是 **model–harness 系统属性**，不是模型单独的属性。类似地，always-on 是 **调度–记忆–隔离–审批** 的系统属性，不是「会话 + 电脑 + 定时」勾选框的简单和。
 
-- **Dots**：GPT-6 Astra 驱动，有云电脑与浏览器，可连接 Slack/Teams，可调度 Codex 完成编码任务；敏感操作需 Auto-review 批准。
-- **Muse**：Meta 的个人代理，Secure VM + Sentinel 系统级隔离，凭证不进模型上下文；支持 WhatsApp/Muse app，发信/购买需确认。
-- **Grok Bot**：xAI 与 Cursor 合作，具备 skills + routines（cron/事件），多 Bot 并行与群聊交接，24/7 常驻；重要提示——同一账户下所有 Bot **共享一台云电脑**（文件、浏览器会话、登录态），官方明确：**不要把不同 Bot 当作安全隔离边界**。
+下文从第一性出发，拆开四个维度：单位、时间、空间、权限。每个维度写清楚「产品宣称什么」「工程可实现什么」「裂缝在哪」「反例是什么」。
 
-### 2. General / computer-use task agent
+## 二、单位裂缝：从 Task 到 Responsibility 的不可互换性
 
-代表：Manus（及 Cue）
+### 2.1 四种候选单位
 
-**一句话**：云端虚拟电脑上的通用任务执行；Manus 2.0 起补充 Automations、Cloud Computer、Cue 个人代理。
+| 单位 | 产品语言 | 工程可实现性 | 裂缝 |
+|------|----------|--------------|------|
+| **Task** | 「帮我做完这件事」 | 队列 + 超时 + 提交工件；coding session 默认单位 | 做完即散；无法承载「持续负责」 |
+| **Session** | 「这次对话里继续」 | 事件日志 / transcript；可 crash-resume | 会话可很长，但不是责任；context rot |
+| **Responsibility** | 「Give it a responsibility」（Dots） | 目标 + 约束 + 审批策略 + 进度状态机；需显式持久化 | 产品好讲，工程要把「未确认的业务判断」挡在人这边 |
+| **Identity** | Muse / Cue / Grok Bot 命名、记忆、邮件/电话 | 命名空间 + 记忆库 + 对外身份（邮箱/电话/钱包） | 身份易造；凭证与责任归属难造 |
 
-- Manus 原本偏「交付成品」而非「常驻同事」。
-- Cue 是 Manus 2.0 引入的独立代理身份：每个代理有邮箱/电话/钱包/电脑，可组聊协作，更接近 always-on 的心智模型。
-- 支持浏览器+文件系统+定时任务（Automations），Cascade harness 提供项目上下文。
+### 2.2 工程可验证的最小单位仍是 Task
 
-### 3. Office / chat copilot → 办公 Agent
+Dots 的文案说「交给责任而非单次 prompt」，Grok Bot 说「Bot 有名字、有工作、跨会话积累的上下文」。产品宣称的单位是 **Responsibility** 或 **Identity**。
 
-代表：WorkBuddy（腾讯）、千问办公（阿里）、豆包工作（字节）
+但雷峰网实测办公 agent 场景（WorkBuddy、千问办公、豆包工作）给出反例：AI 接走执行后，同一张脏表（Q1 订单异常项是否计入总额？）三家算出三个总额，最高比最低多 57.7%——三家各自擅作主张且不问人。**判断、核对、背锅仍在人**；agent 交付的是「看起来已完成」的成品，但业务事实裁决（哪些订单算异常、口径如何定义）没有可验证的归属机制。
 
-**一句话**：偏办公交付与生态绑定（腾讯/钉钉/飞书）；部分具备定时、本地/云电脑、多 Agent，但产品心智仍更接近「把任务干完」而非「常驻同事」。
+这暴露了 **Responsibility 的工程现实**：责任里夹着「业务口径判断」，而口径判断不能靠 LLM 自己说了算。工程可验证完成的单位，仍然是 **Task**（带审计状态、可回滚、有明确交付物）。Responsibility 是产品包装，Task 是可交付单元；中间的鸿沟是「谁来确认这件事做对了」。
 
-- **WorkBuddy**：全场景 AI 办公工作台，自然语言→自主规划执行→交付成果；本地文件、多任务并行、Skill/Connector、定时自动化；深度整合腾讯办公生态。
-- **千问办公**：一站式 AI 生产力平台，钉钉/IM、Office、浏览器自动化、定时任务；强调企业上下文与知识库。
-- **豆包工作**：独立办公 Agent 客户端，拆解任务、调用工具、电脑/浏览器操作；飞书深度整合；与编程产品线（TRAE）并行拆分。
+### 2.3 Identity ≠ 凭证 ≠ 责任归属
 
-这三类不是同一种产品——Always-on 强调「责任所有者 + 常驻身份」，Office Agent 强调「任务交付 + 生态绑定」。
+Cue（Manus 2.0）的个人代理有邮箱、电话、钱包、电脑；Muse 可 remember/forget、发信前需确认；Grok Bot 多个 Bot 可命名、有各自记忆。Identity 的产品语言是「像人一样」。
 
-## 产品对比表：会话、常驻、电脑、定时、记忆
+但 Identity 易造（命名空间 + 记忆库 + 对外身份），**凭证与责任归属**难造：
 
-| 维度 | Always-on<br>（Dots / Muse / Grok Bot） | Manus（含 Cue） | 办公 Agent<br>（WorkBuddy / 千问办公 / 豆包工作） |
-|------|--------------------------------------|----------------|-----------------------------------------------|
-| **会话生命周期** | 跨会话、跨端同一身份；工作在对话之间继续 | 任务/项目导向；可跨会话延续项目；Cue 为个人代理身份 | 任务/对话为主；项目空间可跨任务复用；偏「一次任务交付」 |
-| **是否常驻后台** | 是：云端持续工作，设备关机不影响 | 任务可后台跑；Cloud Computer / Automations 强化常驻 | 部分：云端任务可关客户端继续；定时任务常见；不等于个人常驻同事 |
-| **独立电脑/沙箱** | 是（Dots 云电脑；Muse Secure VM；Grok Bot 共享云电脑） | 是（云端环境 / Cloud Computer；Cue 每代理有电脑） | 混合：本地文件沙箱、云电脑或浏览器自动化不等价于「个人专用 VM」 |
-| **定时/事件触发** | 是（Dots 可调度检查；Grok Bot routines；Muse 后台推进） | 是（Scheduled Tasks → Automations：邮件/日历/Slack 等事件） | 是（WorkBuddy/千问办公/豆包工作均宣传定时或周期性任务） |
-| **记忆持久化** | 强：偏好、责任、跨通道上下文；可 forget / 私有笔记 | 项目上下文 + Cascade harness；Cue 身份化 | 企业/项目上下文、技能与知识库；个人长期画像相对弱于 always-on |
-| **代表用户对外发消息权限** | 强闸门：Auto-review / Sentinel / 用户批准；默认草稿优先 | Cue：自有邮箱/电话；支付有预算；需确认类动作 | 连接器写操作存在；企业权限与审批因厂商而异；公开细节参差 |
-| **多 agent / 子代理** | 是（Dots 后台 agents；Muse subagents/swarms；Grok Bot 多 Bot 协作） | 是（组聊多代理；Cascade 按需拉专长） | 是（多任务并行、工作小队/多 Agent；平台化 Skill） |
-| **与 IDE/编码关系** | Dots 可联动 Codex；Grok Bot 可交工程任务；非纯 coding 产品 | 含代码/Game Dev；非 IDE 内嵌为主 | 与 CodeBuddy / Qoder / TRAE 等编程线并行拆分 |
-| **典型交互** | 聊天/通话 + 云桌面/浏览器接管 + IM（Slack/Teams/WhatsApp） | Web/桌面/手机 + Studio 专业环境 + 远程电脑操控 | 桌面客户端 + 聊天下达任务 + 结果面板；生态 IM 入口 |
+- **凭证层**：Muse 的 Sentinel 机制把凭证与模型上下文隔离，agent 永不见表观密钥，所有 egress 与 connector 动作由 Sentinel 代为执行。这不是「给 agent 起个名字」能解决的。
+- **责任归属**：Grok Bot 文档明确警告：同一账户下所有 Bot **共享一台云电脑**（文件、浏览器会话、登录态），**不要把不同 Bot 当作安全隔离边界**。多 Bot 协作的便利与隔离的可靠性是冲突的；Identity 的产品叙事掩盖了「谁背锅」的工程现实。
 
-**核心结论**：Always-on 相对「一次性 coding session」多出来的，主要不是更强的单轮推理，而是 **harness 层**——持久记忆、调度、长生命周期沙箱、连接器鉴权持久化、send-on-behalf 闸门、子代理并行、不可信工具结果隔离，以及 always-on 成本预算。
+对比 Muse（每 agent 独立 Secure VM）与 Grok（账户共享电脑）：前者牺牲资源换隔离，后者牺牲隔离换协作便利。这是架构权衡，不是功能勾选。
 
-## 落到 Harness：Coding Session 缺什么
+### 2.4 小结
 
-### 开源/社区参照（coding / general agent harness）
+**论点**：产品宣称的单位往往是 Responsibility/Identity；工程可验证完成的单位仍是 Task（带审计状态）。  
+**裂缝**：Responsibility 里夹着「业务口径判断」，Identity 的存在不等于凭证隔离与责任归属。  
+**辩证**：足够好的企业知识库 + 人设规则可以把部分裁决编码进策略，责任可逐渐机器化——但这需要「可验证的裁判机制」（类似编译器/测试），办公场景尚缺此类裁判。
 
-| 项目 | 定位 | 与 always-on 的关系 |
-|------|------|---------------------|
-| **OpenCode** | 开源 AI coding agent（终端/IDE/桌面） | 强于会话内编码；缺常驻电脑、routines、send-on-behalf |
-| **OpenAI Codex** | 终端 lightweight coding agent | Dots 可委派 Codex；本身仍是 coding session |
-| **Claude Code** | Anthropic coding agent 产品线 | 被 LongHorizon-Harness 等论文当作后端 harness |
-| **OpenHands** | 开源软件开发 agent 平台 | Docker 沙箱、可组合 workflow；更接近 outer-loop |
-| **SWE-agent** | Agent-Computer Interface for SE | ACI 设计方法论；仍偏任务 episode |
-| **Aider** | Git 中心 pair programming | 会话/提交粒度；无 always-on 调度 |
-| **Browser-use** | 浏览器自动化 agent 库 | 提供 computer/browser 能力组件，非完整 always-on |
+## 三、时间经济学：成本函数与「打扰」的解耦
 
-**Anthropic Computer Use（能力层）**：教模型像人一样用电脑（截图、键鼠）；OSWorld 上早期分数仍低——说明 **computer use ≠ always-on harness**。
+### 3.1 可分解的成本函数
 
-从 OpenCode、Codex 这样的会话型 coding agent 到 Dots、Muse、Grok Bot 这样的 always-on，中间缺的不是「多跑几个循环」，而是以下 harness 能力。
+记一次 always-on 月成本近似为：
 
-## Harness 能力矩阵
+$$
+C \approx C_{\text{idle}} + C_{\text{work}} + C_{\text{computer}} + C_{\text{approval-latency}}
+$$
 
-图例：● 必需 / ◎ 强烈建议 / ○ 可选增强 / — 通常缺失于纯 coding session
+| 项 | 含义 | 实证/建模 |
+|----|------|-----------|
+| $C_{\text{idle}}$ | 定时心跳：重发 system+tools+skills+历史 | Cognio：OpenClaw 默认 30min 心跳、~18k–20k token 唤醒上下文；30 个 Opus 级 always-on 仅心跳可建模到 ~$4,644/月；idle 占 74–97% |
+| $C_{\text{work}}$ | 真实任务轨迹 token | LongHorizon-Harness：OSWorld 2.0 上 Qwen 输出 token 从 28.9K→104K/任务换取完成率提升；Terminal-Bench 上反而可能少耗 token |
+| $C_{\text{computer}}$ | VM/容器常开（CPU/盘）≠ token | Manus Cloud Computer：为 24/7 bot、定时任务、持久文件系统单独售卖 |
+| $C_{\text{approval}}$ | 等人批：墙钟时间与上下文保鲜 | Muse/Dots/Grok：敏感动作闸门；「常在线」常变成「等人」 |
 
-| Harness 能力 | 纯 Coding Session<br>（OpenCode/Codex 类） | Always-on 需要 | 产品侧参照 |
-|--------------|----------------------------------------|----------------|------------|
-| **Durable memory / profile** | ○ 会话摘要或项目笔记 | ● 跨会话偏好、责任、决策日志、可遗忘 | Dots memory；Muse remember/forget；Grok Bot per-Bot memory |
-| **Routines / cron / event listeners** | — | ● 调度 + 窄事件匹配 + 失败策略 | Grok Bot routines；Manus Automations；Dots scheduled check-in |
-| **Background subagents / parallel workstreams** | ◎ 多 session（OpenCode） | ● 并行流 + 交接 + 用户不充当路由器 | Dots background agents；Muse subagents；Grok Bot 多 Bot |
-| **Long-lived sandbox / VM / desktop + browser** | ◎ 任务级容器 | ● 持久磁盘、会话 cookie、可接管桌面 | Muse Secure VM；Dots/Grok Bot cloud computer |
-| **Connector / MCP auth persistence** | ○ 本地 env/token | ● OAuth/凭据仓、surrogate、轮换与撤销 | Muse authd；Dots plugins；Grok Bot connectors |
-| **Send-on-behalf 草稿与确认闸门** | —（或仅 git push 确认） | ● 草稿默认 + Auto-review/Sentinel + 能力绑定批准 | 三家 always-on 均强调；Simon Willison lethal trifecta |
-| **Wake / sleep、quiet routine、handoff** | — | ● 自主决定何时醒来；静默例行；人机桌面接管 | Dots wake；Grok Bot pause after absence；Take over |
-| **Isolation（untrusted tool results）** | ○ 有限 | ● 不可信标签、runtime cell、凭证外置 | Muse runtime cell + classifiers；Dots Auto-review |
-| **Cost / token budgeting for always-on** | ○ 单任务 budget | ● 例行用量、空闲研究预算、暂停策略 | Grok Bot usage / pause routines；Dots 独立额度表述 |
+Cognio 研究页（建模非审计账单）对比 always-on 相对 on-demand：全员使用约 **3.8×**；低采用率可到 **~35×**。关键观察：**30 分钟心跳 vs 5 分钟 prompt cache TTL**，默认可能永远 miss cache（「最差区间」）。
 
-### 设计原则（工程可读）
+### 3.2 常在线 ≠ 主动打扰（但默认耦合）
 
-1. **责任对象 vs 任务对象**：always-on 的一等公民是「ongoing responsibility」，coding agent 的一等公民是「this repo / this ticket」。
-2. **默认草稿，显式放行**：发信、支付、对外发布必须经过非对话通道的确认 UI（Muse；Grok Bot；Dots）。
-3. **凭证永不进模型**：surrogate token + JIT 注入（Muse 公开写得最细）。
-4. **共享电脑 ≠ 多租安全边界**：Grok Bot 明确警告；多 Bot 协作便利与隔离冲突需产品级说明。
-5. **调度要窄**：宽事件监听烧钱且放大 prompt injection 面（Grok Bot docs）。
-6. **不可信输入标签**：工具/网页/邮件进入上下文时标记 untrusted，并与「致命三件套」设计对照。
-7. **长程状态外置**：学术侧 LongHorizon-Harness 的 Manage–Execute–Audit 说明：把 task state 从执行轨迹里拆出来，是 long-horizon 可靠性关键。
+| 模式 | 行为 | 打扰性 | 成本特征 |
+|------|------|--------|----------|
+| Event-driven wake | 邮件/日历/Slack/webhook 触发 | 低–中（可过滤） | 有事件才付费 |
+| Scheduled check-in | 工作日 9am 更新清单 | 可控 | 固定次数 |
+| Heartbeat +「有没有事」 | 周期性全量上下文 | 中（若爱发消息） | **空转仍付全价** |
+| Proactive research（只读） | Dots：空闲可读研究；写操作仍要权限 | 低（若不推送） | 研究本身耗 token |
+| Proactive Memory intervention | 选择性注入提醒；可选择沉默 | 对用户可静默 | 多一个 memory agent 的调用 |
 
-## 若基于 OpenCode / Codex 做 Always-on：最小增量清单
+**Proactive Memory Agent**（arXiv:2607.08716）的 ablation 显示：**selective intervention** 优于 always-on injection、被动暴露全 bank、advisor-only。换句话说，always-on 不意味着「每次都把全量记忆塞进上下文」，而是 **按需干预**。
 
-假设你已有 OpenCode 或 Codex 这样会话型 coding agent，想升级为 always-on，以下是 5 条可操作步骤：
+### 3.3 第一性推导：可达性 ≠ 话痨
 
-### 1. 持久身份与记忆层
+产品为了「感觉活着」默认心跳+主动推送；工程正确的默认应是 **事件触发 + 沉默权 + 忙闲分离模型档位**。
 
-在会话外增加 **profile + responsibility store**（偏好、进行中目标、决策日志、可遗忘 API）。不要只靠对话 transcript。
+Always-on 卖的是 **可达性**（reachable）：用户需要时 agent 能响应、能继续未完成的工作、能在用户离线时推进可自动化的部分。可达性不要求 agent 每 30 分钟醒来一次重发全量上下文，也不要求主动推送「我又想到一个主意」。
 
-**可操作项**：
+但默认实现常耦合「心跳 + 主动推送」，因为：
+1. 心跳是保险——防止 agent 「死掉」后用户不知道；
+2. 主动推送是「人格化」——让 agent 显得「活着」。
 
-- 数据结构：`user_profile`（偏好、禁忌）+ `ongoing_responsibilities`（责任列表、状态、上次检查时间）+ `decision_log`（历史决策、结果、反馈）。
-- API：`remember(key, value, scope)`、`forget(key)`、`recall(query)` 支持跨会话查询。
-- 遗忘机制：用户可删除记忆；时间衰减策略（早期决策逐渐降权）。
+**辩证**：监控/抢单/客服 SLA 需要亚小时可达，心跳可能是必需成本（保险费）。个人单 agent 场景的心跳惩罚远小于企业多 agent 车队。但对个人 always-on 助手来说，**事件驱动 + 沉默权**应是第一性——用户明确配置「哪些事件唤醒」「哪些场景沉默」，而不是默认全开。
 
-参考：
-- Dots 的 [memory docs](https://learn.chatgpt.com/docs/dots)
-- Muse 的 [remember/forget 能力](https://www.meta.com/help/artificial-intelligence/1047255454427887/)
-- 学术侧 [Proactive Memory Agent 论文](https://arxiv.org/html/2607.08716)
+### 3.4 成本杠杆（Cognio 建模）
 
-### 2. 调度器（cron + 窄事件）
+- 部门共享 agent（摊薄固定上下文）
+- Quiet hours（下班时间不心跳）
+- IsolatedSession（短任务用小模型，长任务才调大模型）
+- 事件触发替代心跳
+- 框架外硬预算封顶（超额暂停）
 
-把「成功跑通一次的 skill」升级为 **routine**；强制时区、缺失数据策略、幂等重试；默认禁止「监听所有消息」。
+这些都是「解耦可达性与空转成本」的工程手段。
 
-**可操作项**：
+### 3.5 小结
 
-- 调度表达式：支持 cron（`0 9 * * 1-5` 工作日早 9 点）或事件触发（`on: new_email from: boss@example.com`）。
-- 窄事件匹配：不允许 `on: any_message`；必须指定 sender / channel / keyword。
-- 失败策略：重试次数、指数退避、失败 N 次后通知用户暂停。
-- 幂等设计：同一事件触发多次不应产生重复副作用（如重复发信）。
+**论点**：默认心跳式 always-on 是反模式；事件驱动 + 沉默权才是第一性。  
+**裂缝**：产品把「常在线」与「心跳+主动推送」打包销售，但工程上可达性与打扰性是两个维度。  
+**辩证**：企业场景（监控/SLA）可能需要心跳作保险；个人场景应优先事件触发。成本函数可分解，每一项有对应的杠杆。
 
-参考：
-- Grok Bot 的 [skills-routines-and-automations](https://docs.x.ai/grok-bot/skills-routines-and-automations)
-- Manus 2.0 的 [Automations](https://manus.im/blog/introducing-manus-2-0)
+## 四、空间与手：为什么需要长寿命电脑？Computer-use ≠ Always-on
 
-### 3. 长生命周期执行面
+### 4.1 长寿命电脑解决什么
 
-从「每次任务新建容器」升级为可挂载 **持久工作区 + 浏览器 profile**；支持用户 **Take over / Return control**；与本地机权限分离。
+Manus 官方博客对比很清楚（Cloud Computer vs temporary sandbox vs Desktop）：
 
-**可操作项**：
+| 环境 | 适合 | 不适合 |
+|------|------|--------|
+| Temporary sandbox | 一次性脚本/分析/建站 | 跨天状态、24/7 bot |
+| Desktop / My Computer | 操作本机文件与应用 | 笔记本睡眠、断网 |
+| Cloud Computer | 24/7 bot、定时、持久库、自托管 | （FAQ：目前 CLI-only，无图形桌面） |
 
-- 持久磁盘：每个用户（或每个 agent 身份）有独立工作区，跨会话保留文件、git repo、环境变量。
-- 浏览器 profile：保存登录态（cookies、localStorage），避免每次重新登录 GitHub/Gmail。
-- 桌面接管：用户可「接管」agent 的云桌面进行调试，完成后「归还」；agent 继续在同一环境工作。
-- 权限分离：云电脑的 SSH key / AWS credential 与本地机分离；agent 无法读取宿主机的 `~/.ssh`。
+物理直觉：笔记本会睡、会断网；「责任」若绑定本机进程，责任随合盖消失。长寿命 VM 提供 **持久文件系统 + 不关机的时钟 + 隔离边界**。
 
-参考：
-- Muse 的 [Secure VM](https://research.meta.ai/blog/security-and-safety-for-ai-agents-our-approach-with-muse)
-- Grok Bot 的云电脑与本地执行权限分离（[overview](https://docs.x.ai/grok-bot/overview)）
+这是 always-on 的 **空间属性**：agent 需要一个「不会因用户关机而消失」的执行环境。
 
-### 4. 对外副作用闸门
+### 4.2 Computer-use 是动作原语，Always-on 是调度+审计
 
-所有 **send/post/pay/delete** 走草稿 + 独立审批通道（非聊天里口头「好的」）；引入 **Auto-review 规则**（Ask first / Allow automatically）；凭证与模型上下文隔离。
+Anthropic computer use 文档描述的是：截图 + 键鼠等成员工具；**client-side agent loop**；安全建议包括专用 VM、少给敏感数据、域名 allowlist、人确认关键后果；并承认网页/图像中的指令可覆盖用户意图（prompt injection）。
 
-**可操作项**：
+**边界命题**：
+- Computer-use = **如何动手**（感知-动作环）
+- Always-on = **何时动手、在谁的机器上、用谁的凭证、失败如何审计、空闲如何计费**
 
-- 草稿默认：agent 准备发邮件/Slack/PR 时，先生成草稿，展示给用户，等待批准后再发送。
-- 审批 UI：独立于聊天的审批界面（弹窗或通知），明确显示「将要做什么」「影响范围」「撤销成本」。
-- Auto-review 规则：用户可配置「发给内部同事的消息自动批准」「涉及支付的必须手动确认」。
-- 凭证外置：Slack token / GitHub token 存在独立的 credential store，agent 通过 surrogate token 请求操作，credential store 验证后代为执行。
+可有 computer-use 而无 always-on（一次 OSWorld 评测轨迹）；可有 always-on 而无 GUI computer-use（纯 CLI Cloud Computer + cron）。
 
-参考：
-- Dots 的 [Auto-review](https://learn.chatgpt.com/docs/dots)
-- Muse 的 [Sentinel](https://research.meta.ai/blog/security-and-safety-for-ai-agents-our-approach-with-muse)
-- Grok Bot 的 [approvals-security-and-privacy](https://docs.x.ai/grok-bot/approvals-security-and-privacy)
-- Simon Willison 的 [The lethal trifecta](https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/)
+### 4.3 基准现实：长程桌面仍极难
 
-### 5. Always-on 预算与休眠
+**OSWorld 2.0**（108 个长程工作流；人类中位约 1.6 小时；Claude Opus 4.7 max thinking 平均约 318 tool calls）：
 
-为 **proactive research / routines** 设 **token 与并发上限**；长时间无用户响应则 **pause routines**；子代理并行要有总预算与优先级队列。
+- Claude Opus 4.8 batched：二进制完成 **20.6%**，partial **54.8%**
+- GPT-5.5：更省 token，二进制约 **14%** 附近平台
+- 失败模式：丢约束、漏中途信息、该问不问、跳过验证、隐含状态恢复失败
+- 超长任务：>163 分钟档，二进制完成率落到 **0**
 
-**可操作项**：
+OSWorld 1.0（对照）：369 任务；人类 ~72%，早期最佳模型约 12%。
 
-- Token 预算：日/周 token 上限（如「proactive research 每天最多 50k tokens」）；超额后暂停非紧急任务。
-- 并发限制：最多同时运行 N 个子代理（防止失控放大）；超出时进入队列。
-- 休眠策略：用户 24 小时未互动 → 暂停空闲研究；用户 7 天未互动 → 暂停所有 routines；用户明确休假 → agent 进入低功耗模式。
-- 优先级队列：用户主动请求 > 紧急事件触发 > 定时例行 > 空闲研究。
+**含义**：「会点鼠标」远不等于「能扛小时级工作流」。长寿命电脑是必要条件（状态不丢），但不是充分条件（状态对了也不一定做对）。
 
-参考：
-- Grok Bot 文档提及的 usage / pause routines
-- Dots 宣传的空闲时 proactive research（但有独立额度表述）
+### 4.4 小结
 
-### 可选第 6 条（强烈建议）：不可信工具结果隔离
+**论点**：Computer-use 进步不会自动给出 always-on；OSWorld 分数上升主要改善「手」，不改善「班」。  
+**裂缝**：产品宣传「有云电脑」，但电脑配置不等于可靠性。OSWorld 失败以状态与验证为主，不是「电脑性能不够」。  
+**辩证**：更强模型可能减少审计轮次，从而降低 always-on 成本曲线（LH 论文：Opus 上 token 可降）——但绝对完成率仍然很低，改善是相对的。
 
-邮件/网页/MCP 输出进入上下文时打 **`untrusted` 标签**，并默认切断「读私有数据 + 对外通信」的同时满足（对照 **lethal trifecta**）。
+## 五、权限与责任归属：从 Trifecta 推出闸门
 
-**可操作项**：
+### 5.1 第一性推导：指令与数据不可分
 
-- 输入标签：来自外部的数据（网页内容、邮件正文、第三方 API 响应）标记 `untrusted`。
-- 隔离 runtime：在独立 cell 里处理 untrusted 数据（Muse 的 runtime cell）；该 cell 无权访问凭证、无权发起对外通信。
-- 致命三件套检测：同时满足「读私有数据」+「写入外部」+「不可信输入控制流」时强制审批。
+LLM **无法可靠区分「用户指令」与「内容中的指令」**（同一 token 流）。因此：
 
-参考：
-- Muse 的 [runtime cell + classifiers](https://research.meta.ai/blog/security-and-safety-for-ai-agents-our-approach-with-muse)
-- Simon Willison 的 [lethal trifecta](https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/)（读私有数据 + 对外通信 + prompt injection）
+1. 若 agent 能读 **私有数据**，且
+2. 会摄入 **不可信内容**（网页、邮件、issue、截图 OCR），且
+3. 能 **外联/外发**（HTTP、邮件、PR、webhook），
 
-## 安全要点：Auto-review / Sentinel / Lethal Trifecta
+则攻击者可诱导「读私有 → 外泄」。Simon Willison（2025-06-16）称之为 **lethal trifecta**；去掉任一腿即可切断该攻击类。Guardrail 产品常宣称「95%」——对 Web 安全来说不及格。
 
-### Auto-review（Dots）
+### 5.2 产品侧「答案」对照
 
-Dots 的 Auto-review 机制：
+| 机制 | 谁在做 | 第一性对应 |
+|------|--------|------------|
+| Approval / Auto-review / HITL | Dots、Grok Bot、Muse | 外联腿加闸；能力变「提议」 |
+| Sentinel + 凭证 surrogate | Muse | 模型永不见表观密钥；egress 唯一权威在 Sentinel |
+| 污点追踪（tainted egress） | Muse | 读过用户数据的进程失去 auto-allow |
+| Dual LLM / 隔离不可信 | Willison 2023；CaMeL 等后续 | 拆开「读不可信」与「持工具」 |
+| 共享电脑 vs 每 agent 电脑 | Grok 共享；Dots/Muse/Cue 偏独立 | **隔离边界**：共享则 Bot 间非安全边界 |
 
-- **Ask first**（默认）：敏感操作前生成预览，等待用户批准。
-- **Allow automatically**（可配置）：用户可将特定操作类型标记为「自动批准」（如「发给内部团队的 Slack 消息」）。
-- **能力绑定**：不同能力有不同审批级别（如「读取文件」无需审批，「git push」需要审批，「发邮件给外部」强制审批）。
+Muse 安全长文明确引用 lethal trifecta，并描述 defense-in-depth：runtime cell（隔离不可信输入）、Sentinel（凭证与 egress 外置）、污点追踪（读过私有数据的进程失去自动批准权）。
 
-### Sentinel（Muse）
+Anthropic computer use 文档同样要求：隔离环境、少给登录态、allowlist、人对金融/条款确认。
 
-Muse 的 Sentinel 是独立于主 agent 的系统级隔离：
+### 5.3 责任归属的残酷事实
 
-- **凭证不进模型上下文**：Slack token、Gmail OAuth 等凭证由 Sentinel 管理，agent 通过 surrogate token 请求操作。
-- **Egress 控制**：agent 提出「发送邮件」请求 → Sentinel 验证合法性（收件人、内容、频率）→ Sentinel 代为执行。
-- **Connector 动作审批**：所有 MCP connector 的写操作由 Sentinel 批准；agent 无法直接调用外部 API。
+雷峰网实测：AI 接走执行后，**判断、核对、背锅仍在人**；三家对「异常订单是否计入」各自擅作主张且不问人。  
+→ Always-on 若放大「看起来已完成」的交付物，会 **放大虚假责任感**，而不是消灭责任。
 
-### Lethal Trifecta（Simon Willison）
+**工程含义**：闸门不是可选的 UI 改进，而是「把不可自动化的决策拦在人这边」的必需机制。默认草稿、显式批准、能力绑定审批——这些都是把「agent 提议 → 人确认 → 审计记录 → 可追溯」这条链路强制化。
 
-Simon Willison 提出的「致命三件套」：
+### 5.4 共享电脑的含义
 
-1. **读私有数据**（如用户邮件、Slack 私聊、本地文件）
-2. **对外通信**（如发邮件、post 到外部 API、exfiltrate 数据）
-3. **Prompt injection**（不可信输入控制 agent 行为）
+Grok Bot 文档明确警告：同一账户下所有 Bot **共享一台云电脑**（文件、浏览器会话、登录态），**不要把不同 Bot 当作安全隔离边界**。
 
-当这三者同时满足时，攻击者可通过精心构造的网页/邮件诱导 agent 泄漏私有数据。
-
-**防御**：
-
-- 默认禁止「读私有数据 + 对外通信」同时满足。
-- 若必须同时满足（如「读邮件后回复」），则对外通信必须经过草稿审批。
-- 不可信输入（网页、邮件）在隔离环境处理，无权访问私有数据。
-
-### Grok Bot 共享电脑 ≠ 安全边界
-
-Grok Bot 文档明确警告：
-
-> 同一账户下所有 Bot 共享一台云电脑（文件、浏览器会话、登录态）。**不要把不同 Bot 当作安全隔离边界**。
-
-这意味着：
-
+**含义**：
 - Bot A 可以读到 Bot B 创建的文件。
-- 浏览器登录态被所有 Bot 共享（如 Bot A 登录 GitHub，Bot B 也能用该登录态）。
+- 浏览器登录态被所有 Bot 共享（Bot A 登录 GitHub，Bot B 也能用该登录态）。
 - 若需要隔离，应使用不同账户或不同沙箱方案。
 
-对比：Muse 的每个 agent 有独立 Secure VM；Cue 的每个代理有独立电脑。
+对比 Muse（每 agent 独立 Secure VM）与 Grok（账户共享电脑）：**隔离边界的选择是架构权衡**，不是「有没有电脑」的功能勾选。
 
-## 架构示意（Mermaid）
+### 5.5 小结
+
+**论点**：Lethal trifecta 意味着：个人 always-on 助手在「邮箱+上网+可外发」默认配置下，安全上默认有罪，除非架构拆腿。  
+**裂缝**：产品宣传「能发邮件、能上网、能帮你管理私人信息」，但这三者同时满足即构成 trifecta。  
+**辩证**：模型抗注入 + classifier 集成可达「可接受残留风险」；绝对拆腿会废掉产品价值。Muse 的选择是 Sentinel（egress 外置）+ runtime cell（不可信隔离）+ 污点追踪，而不是禁止 agent 联网或禁止读私有数据。
+
+## 六、Harness vs Model：增量主要在哪？反例是什么？
+
+### 6.1 支持「增量主要在 harness」的证据
+
+**LongHorizon-Harness**（arXiv:2608.01964，AMAP）：把长程执行改写成 **task-state management**；Manage–Execute–Audit；状态只接受环境审计事实；executor 每轮 fresh context。
+
+| 设置 | 指标变化（论文报告） |
+|------|----------------------|
+| Qwen 3.7-Plus + Claude Code → +LH | WeaveBench PassRate **51.8% → 80.7%** |
+| 同上 | Terminal-Bench 2.1 **69.7% → 77.2%** |
+| 同上 | OSWorld 2.0 binary **2.8% → 8.3%** |
+| Claude Opus 4.7 subset | binary **20.0/20.6% → 34.3/35.3%** |
+
+结论句（论文）：agent 能力是 **model–harness 系统属性**；更强 harness 可抬高固定模型的任务级表现。
+
+**SWE-agent**（arXiv:2405.15793）：专门 ACI（查看/编辑/搜索+lint guardrail）相对 shell-only 有大幅提升（Lite 上 GPT-4 Turbo **18% vs shell-only 11%** 等）。说明接口设计本身是能力。
+
+**社区 harness 共识**：append-only log ≠ context window；termination/policy 在 harness，不在模型自觉。
+
+### 6.2 反例：不全是 harness
+
+1. **模型能力上限**：LH 论文自己写——分析类、视觉精度、算法题等类别，harness 增益小；审计不能发明模型没有的能力。OSWorld 上即使加 harness，绝对完成率仍极低。
+2. **记忆/干预算法**：Proactive Memory 在固定 harness 上 +8.3pp（Terminal-Bench）——策略本身关键；且 **always inject 不如 selective**。
+3. **Computer-use / GUI grounding**：Anthropic 文档列出点击精度、滚动、表格等限制；失败常在感知-动作，不在「有没有 cron」。
+4. **Proactive 产品策略**：何时问人、何时沉默、何时只读研究——属产品+模型校准，不是纯循环工程。
+5. **Continual Harness**（arXiv html 2605.09998）：在线改自己的 prompt/skills/memory——harness 与模型自适应纠缠。
+
+### 6.3 辩证小结
+
+**可写金句**：Always-on 的增量 **主要在 harness，但「主要」不是「全部」**；把模型奇点化或把 harness 万能化都会写歪。
+
+相对 Claude Code / Codex / OpenHands / SWE-agent：**always-on 增量**主要落在——持久责任状态、调度/空闲策略、长寿命电脑、连接器鉴权持久化、send-on-behalf 闸门、多 bot 协调、跨会话记忆治理——这些大多不是「换一个更强 chat 模型」能自动获得的。
+
+但记忆干预策略、GUI grounding、模型长程能力是一阶反例。Harness 是放大器，不是发明机。
+
+## 七、品类光谱：办公 Agent 与 Always-on 的分水岭
+
+### 7.1 能力重叠表（精简版）
+
+| 能力 | Always-on 个人助手 | Manus/Cue | 办公三件套 |
+|------|-------------------|-----------|------------|
+| 定时/自动化 | 有 | Automations + Cloud Computer | 有 |
+| 电脑/浏览器 | 云 VM / 共享电脑 | 云电脑 + Desktop + Remote | 本地沙箱/VM/内置浏览器（实现各异） |
+| 多 agent | 有 | 组聊多代理 | 有 |
+| 产品心智 | 「常驻同事/责任」 | 「能建能跑 + 身份化代理」 | 「把这份活交割完」 |
+| 责任语言 | responsibility / goal | project / automation / Cue identity | 任务交付 + 企业上下文 |
+
+### 7.2 分水岭不是功能，而是裁判机制与背锅合同
+
+雷峰网拆解核心论点（2026-09-30）：
+
+- 腾讯 WorkBuddy：平台底座（Skill/Expert/Connector）
+- 阿里千问办公：钉钉入口与组织上下文
+- 字节豆包工作：飞书上下文 + 电脑/浏览器身体 + 手机远程
+
+「下沉的是技术，分家的是产品」——**编程 Agent 有编译器/测试作裁判；办公室没有**。三家对同一脏表给出三个总额，说明品类竞争在 **入口、上下文、执行身体、背锅合同**，不在 checkbox 功能表。
+
+### 7.3 品类轴（连续而非三格）
+
+1. **生命周期**：一次性 session → 可恢复 project → 常驻 responsibility  
+2. **空间**：无状态沙箱 → 持久 VM → 本机接管  
+3. **对外身份**：无 → 代理发信 → 独立邮箱/电话/钱包  
+4. **组织嵌入**：个人 → 团队共享电脑 → 企业 IAM/连接器
+
+Manus 在「通用任务 agent → 局部 always-on」光谱上滑动（Cloud Computer / Automations / Cue 身份），但官方叙事仍是 build/run，不是「个人超智能同事」（Muse 话术）。
+
+### 7.4 小结
+
+**论点**：办公 Agent 与 personal always-on 的分水岭不是「会不会用电脑」，而是「有没有编译器式裁判 + 谁背锅」。  
+**裂缝**：能力重叠不意味着同品类；产品心智（同事 vs 交付）与裁判机制（编译器 vs 人肉核对）才是分水岭。  
+**辩证**：企业工作流也可建 verifier（对账规则、强制人审节点），办公 Agent 可收敛到 coding-like——但目前尚缺。
+
+## 八、失败模式与何时不该 Always-on
+
+### 8.1 有害模式清单
+
+| 模式 | 机制 | 证据 |
+|------|------|------|
+| **成本爆炸** | 心跳重送全上下文；低采用率惩罚最大 | Cognio；Anthropic 文档亦称 scheduled task 空闲仍送全上下文 |
+| **权限过大** | trifecta 闭合；MCP 组合外包安全决策给用户 | Willison；GitHub MCP 等案例 |
+| **虚假责任感** | 「报告已生成」掩盖未确认口径 | 雷峰网三总额；OSWorld「文件存在≠做对」 |
+| **prompt injection 面扩大** | 常读邮件/网页/issue；后台无人盯 | Muse 红队与 bug bounty；Anthropic classifier |
+| **状态腐烂 / goal drift** | 长轨迹丢失约束 | OSWorld 2.0 failure cases；LH 动机；Proactive Memory 的 behavioral state decay |
+| **共享电脑串扰** | 多 bot 共享登录态与文件 | Grok Bot 文档明示 |
+
+### 8.2 基准与论文中的「失败分数」
+
+- OSWorld 2.0：SOTA binary **~20.6%**；超长档 **0%**  
+- OSWorld 1.0：早期模型 **~12%** vs 人类 **~72%**  
+- LH + Qwen 在 OSWorld 2.0 仍仅 **8.3%** binary——harness 有用但绝对水平仍低  
+- Proactive Memory：always-on injection **不是**最优  
+
+### 8.3 何时不该 Always-on（决策启发式）
+
+1. 工作是 **突发、低频、可排队** → on-demand / 事件触发  
+2. 价值不足以覆盖 **4×–15×** agent token 倍率（Anthropic 多 agent 研究量级，Cognio 引用）  
+3. 必须闭合 trifecta 才能干活，又无法拆腿或上 Sentinel 级闸门  
+4. 组织 **没有核对科目**（减负不可验证）却要自动外发/入账  
+5. 只需「定时脚本」→ cron + 小模型，不必人格化 always-on  
+
+### 8.4 小结
+
+Always-on 不是银弹；成本、注入、虚假完成、状态腐烂都是真实风险。决策时需要权衡「可达性带来的价值」与「空转成本 + 安全风险 + 虚假责任感」。
+
+## 九、可证伪主张（正方 + 反方）
+
+### T1. 责任单位
+
+**正方**：Always-on 的正确销售单位是 Responsibility，不是 Session；但责任中不可自动完成的部分是「业务事实裁决」。  
+**反方**：足够好的企业知识库 + 人设规则可以把裁决编码进策略，责任可逐渐机器化。
+
+### T2. 成本函数
+
+**正方**：默认心跳式 always-on 是反模式；事件驱动 + 沉默权才是第一性。  
+**反方**：监控/抢单/客服 SLA 需要亚小时可达；心跳是保险费。个人单 agent 场景惩罚远小于车队。
+
+### T3. Computer-use ≠ Always-on
+
+**正方**：Computer-use 进步不会自动给出 always-on；OSWorld 分数上升主要改善「手」，不改善「班」。  
+**反方**：更强模型减少审计轮次，从而降低 always-on 成本曲线（LH：Opus 上 token 可降）。
+
+### T4. Trifecta 默认有罪
+
+**正方**：Lethal trifecta 意味着：个人 always-on 助手在「邮箱+上网+可外发」默认配置下，安全上默认有罪，除非架构拆腿。  
+**反方**：模型抗注入 + classifier 集成可达「可接受残留风险」；绝对拆腿会废掉产品价值。
+
+### T5. Harness 主要增量
+
+**正方**：相对 Claude Code/Codex/OpenHands/SWE-agent，always-on 的产品增量 **主要** 在 harness（调度/电脑/闸门/记忆治理），但记忆干预策略与模型长程能力是一阶反例。  
+**反方**：Cascade 等宣称同架构降 token（Manus 2.0 媒体数字 23.2%/28.2%/32%——二手来源，需谨慎）。
+
+### T6. 共享电脑安全品类
+
+**正方**：「每 agent 一台电脑」与「每用户共享一台电脑」是不同安全品类，不能都叫 always-on 就算了。  
+**反方**：共享电脑 + 强审批 + 无外泄通道在威胁模型下可够用；独立 VM 贵且仍怕 connector 层。
+
+### T7. 裁判机制分水岭
+
+**正方**：办公 Agent 与 personal always-on 的分水岭不是「会不会用电脑」，而是「有没有编译器式裁判 + 谁背锅」。  
+**反方**：企业工作流也可建 verifier（对账规则、强制人审节点），办公 Agent 可收敛到 coding-like。
+
+### T8. 外置状态内核
+
+**正方**：长程 harness 用「外置已审计状态 + fresh executor」是目前最可迁移的 always-on 内核；把对话窗口当状态机则会慢腐烂。  
+**反方**：足够长上下文 + 好 compaction 可逼近；多角色 MEA 增加延迟与协调失败面。
+
+## 十、结语：缺的是可运营 Runtime，不是更长 Prompt
+
+从 OpenCode、Codex 这样的 coding session，到 Dots、Muse、Grok Bot 这样的 always-on agent，中间隔着的不是「更强的模型」或「更长的 context window」，而是 **可运营的 runtime**：
+
+1. **状态外置**：责任/目标/决策日志持久化在会话之外，executor 轮次之间 fresh context；状态只接受环境审计事实。
+2. **审批能力化**：对外副作用（发信/支付/发布）默认草稿 + 显式批准；能力绑定审批级别；凭证永不进模型。
+3. **空闲策略**：事件触发 + 沉默权 + 忙闲分离模型档位；心跳不应是默认，可达性不等于话痨。
+4. **隔离边界**：不可信输入标签 + runtime cell；共享电脑与独立 VM 的选择是安全品类差异，不是功能勾选。
+
+这些都是 harness 层的系统工程，不是「再调一次 prompt」能解决的。LongHorizon-Harness 的 Manage–Execute–Audit、Proactive Memory 的 selective intervention、Muse 的 Sentinel + runtime cell、Grok Bot 的 Auto-review——这些机制共同指向一个洞见：**always-on 的增量主要在 harness，但 harness 不是万能的**。
+
+产品对照表告诉你「有什么功能」，第一性原理告诉你「为什么这些功能不可互换、裂缝在哪、何时会失败」。对照表适合产品经理读一页；第一性适合工程师写深度。
+
+当我们把责任、时间、空间、权限拆开，会发现 always-on 不是「coding agent 跑久一点」，而是「可达性 + 责任归属 + 成本可控 + 安全隔离」的系统属性。缺的不是更长 context，而是可运营 runtime。
+
+## 成本分解示意（Mermaid）
 
 ```mermaid
-graph TB
-    User[用户] -->|对话/通话/IM| Always-on[Always-on Agent]
+graph TD
+    A[Always-on 月成本] --> B[C_idle: 空闲心跳]
+    A --> C[C_work: 真实任务]
+    A --> D[C_computer: VM 常开]
+    A --> E[C_approval: 等人批]
     
-    Always-on --> Memory[记忆层<br>profile/responsibility/decision]
-    Always-on --> Scheduler[调度器<br>cron/event/routine]
-    Always-on --> VM[长生命周期 VM<br>持久磁盘/浏览器 profile]
-    Always-on --> Subagents[子代理并行<br>background workstreams]
+    B --> B1["30min 心跳 × ~18k token<br>Cognio 建模: 74-97%"]
+    B --> B2["永远 miss cache<br>（30min > 5min TTL）"]
     
-    Scheduler -->|触发| Routine[Routine 执行]
-    Routine --> VM
+    C --> C1["LH: 28.9K→104K/task<br>换取完成率提升"]
+    C --> C2["Terminal-Bench 反而省 token"]
     
-    VM --> Tools[工具调用<br>shell/file/browser]
-    Tools -->|需审批| DraftGate[草稿闸门<br>Auto-review/Sentinel]
-    DraftGate -->|批准| External[对外发信/支付/发布]
-    DraftGate -->|拒绝| User
+    D --> D1["Manus Cloud Computer<br>24/7 bot / 定时 / 持久盘"]
     
-    Tools -->|不可信输入| IsolationCell[隔离 Runtime Cell]
-    IsolationCell -->|无凭证/无 egress| SafeProcess[安全处理]
+    E --> E1["敏感动作闸门<br>墙钟时间 + 上下文保鲜"]
     
-    VM --> AuthStore[凭证仓库<br>surrogate token]
-    AuthStore -->|JIT 注入| Tools
-    
-    Subagents --> VM
-    Subagents --> BudgetQueue[预算与优先级队列<br>token/并发上限]
-    
-    style Always-on fill:#4A90E2
-    style DraftGate fill:#F5A623
-    style IsolationCell fill:#FF6B6B
-    style AuthStore fill:#4ECDC4
+    style B fill:#FF6B6B
+    style B1 fill:#FFA07A
+    style A fill:#4A90E2
+    style E fill:#F5A623
 ```
 
-**关键路径**：
-
-1. **记忆层**：跨会话持久化用户偏好、责任列表、决策日志。
-2. **调度器**：cron / 窄事件触发 routine。
-3. **长生命周期 VM**：持久磁盘 + 浏览器 profile，支持 Take over / Return control。
-4. **子代理并行**：后台 workstreams，用户不充当路由器。
-5. **草稿闸门**：对外副作用（发信/支付/发布）必须经审批。
-6. **隔离 Runtime Cell**：不可信输入（网页/邮件）在隔离环境处理，无凭证、无 egress。
-7. **凭证仓库**：surrogate token + JIT 注入，凭证不进模型上下文。
-8. **预算与优先级队列**：token / 并发上限，长时间无响应则休眠。
-
-## 总结
-
-从「一次性 coding session」到「always-on agent」的距离，主要不在模型能力（GPT-4 vs GPT-6），而在 **harness 层工程**：
-
-1. **记忆**：从「对话 transcript」到「跨会话 profile + responsibility store + 可遗忘 API」。
-2. **调度**：从「用户手动启动」到「cron + 窄事件 + 失败策略 + 幂等」。
-3. **执行面**：从「临时容器」到「持久 VM + 浏览器 profile + Take over / Return control」。
-4. **闸门**：从「口头确认」到「草稿默认 + Auto-review / Sentinel + 能力绑定审批」。
-5. **隔离**：从「有限沙箱」到「不可信标签 + runtime cell + 凭证外置 + lethal trifecta 对照」。
-6. **预算**：从「单任务 token 限制」到「例行用量 + 空闲研究预算 + 休眠策略 + 优先级队列」。
-
-**诚实的说**：开源 coding harness 到 always-on 的鸿沟主要在 **产品与系统工程**，不在「再调一次 prompt」。Dots、Muse、Grok Bot 的核心壁垒不是模型，而是上述 6 层 harness 能力的成熟度与审批 UI 的用户体验。
-
-当这些机制到位后，agent 才能从「会话助手」变成「常驻同事」——你可以放心离线睡觉，agent 在云端继续推进工作，第二天醒来看到草稿等待批准，而不是看到库被删、钱被花光、私有数据被泄漏。
-
----
+**要点**：
+- $C_{\text{idle}}$ 常是大头（74–97%），但可通过事件触发、quiet hours、便宜模型跑 idle path 等杠杆优化。
+- $C_{\text{work}}$ 与 harness 设计相关（LH 的 MEA 可能增加 token，但换来完成率）。
+- $C_{\text{computer}}$ 与 $C_{\text{idle}}$ 解耦（VM 按 CPU/盘计费，token 按调用计费）。
+- $C_{\text{approval}}$ 是隐形成本：等人时上下文可能过期，需重新生成摘要。
 
 ## 延伸阅读
 
-### 产品官方文档
+### 一手文献（优先）
 
-- [OpenAI Dots - Features](https://chatgpt.com/features/dots/)
-- [OpenAI Dots - Learn Docs](https://learn.chatgpt.com/docs/dots)
-- [Meta Muse - Introducing Muse](https://about.fb.com/news/2026/09/introducing-muse-personal-ai-agent/)
-- [Meta Muse - Security and Safety](https://research.meta.ai/blog/security-and-safety-for-ai-agents-our-approach-with-muse)
-- [Grok Bot - Overview](https://docs.x.ai/grok-bot/overview)
-- [Grok Bot - Skills, Routines and Automations](https://docs.x.ai/grok-bot/skills-routines-and-automations)
-- [Grok Bot - Approvals, Security and Privacy](https://docs.x.ai/grok-bot/approvals-security-and-privacy)
-- [Manus 2.0 - Introducing Manus 2.0](https://manus.im/blog/introducing-manus-2-0)
-- [WorkBuddy - Docs Overview](https://www.workbuddy.cn/docs/workbuddy/Overview)
-- [千问办公 - 产品页](https://www.aliyun.com/product/qwenwork)
+**产品官方文档**：
+- OpenAI Dots - [Features](https://chatgpt.com/features/dots/) · [Learn Docs](https://learn.chatgpt.com/docs/dots)
+- Meta Muse - [Introducing Muse](https://about.fb.com/news/2026/09/introducing-muse-personal-ai-agent/) · [Security and Safety](https://research.meta.ai/blog/security-and-safety-for-ai-agents-our-approach-with-muse)
+- Grok Bot - [Overview](https://docs.x.ai/grok-bot/overview) · [Skills, Routines and Automations](https://docs.x.ai/grok-bot/skills-routines-and-automations) · [Approvals, Security and Privacy](https://docs.x.ai/grok-bot/approvals-security-and-privacy)
+- Manus - [Introducing Manus 2.0](https://manus.im/blog/introducing-manus-2-0) · [Cloud Computer](https://manus.im/blog/manus-cloud-computer)
 
-### 学术与工程文献
+**学术论文**：
+- [LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks](https://arxiv.org/abs/2608.01964) · [GitHub](https://github.com/AMAP-ML/LongHorizon-Harness)
+- [Remember When It Matters: Proactive Memory Agent for Long-Horizon Agents](https://arxiv.org/html/2607.08716) · [GitHub](https://github.com/yifannnwu/proactive-memory-agent)
+- [SWE-agent: Agent-Computer Interfaces Enable Automated Software Engineering](https://arxiv.org/abs/2405.15793)
+- [OSWorld 2.0: The Next Generation Real Computer Environment for Multimodal Agents](https://arxiv.org/abs/2606.29537) · [Benchmark](https://osworld-v2.xlang.ai/)
 
-- [LongHorizon-Harness: Advancing Long-Horizon Agents for Real-World Tasks](https://arxiv.org/abs/2608.01964)（arxiv）
-- [Remember When It Matters: Proactive Memory Agent for Long-Horizon Agents](https://arxiv.org/html/2607.08716)（arxiv HTML）
-- [SWE-agent: Agent-Computer Interfaces Enable Automated Software Engineering](https://arxiv.org/abs/2405.15793)（arxiv）
-- [Anthropic: Introducing computer use](https://www.anthropic.com/news/3-5-models-and-computer-use)（官方博客）
-- [Simon Willison: The lethal trifecta for AI agents](https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/)（博客）
+**安全与工程**：
+- Simon Willison - [The lethal trifecta for AI agents](https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/)
+- Martin Fowler - [Agentic AI Security](https://martinfowler.com/articles/agentic-ai-security.html)
+- Anthropic - [Introducing computer use](https://www.anthropic.com/news/3-5-models-and-computer-use)
+
+**成本建模**：
+- Cognio - [AI Agent Token Costs](https://cognio.so/resources/guides/ai-agent-token-costs)（建模非审计账单；假设已公开）
+
+**办公 Agent 拆解**：
+- 雷峰网 - [WorkBuddy vs 千问办公 vs 豆包工作横评](https://www.leiphone.com/category/yanxishe/d4mykzxmMYWWwHNk.html)
 
 ### 开源项目
-
 - [OpenCode](https://opencode.ai/)
 - [OpenAI Codex](https://github.com/openai/codex)
-- [OpenHands (All-Hands-AI)](https://github.com/All-Hands-AI/OpenHands)
+- [OpenHands](https://github.com/All-Hands-AI/OpenHands)
 - [Browser-use](https://github.com/browser-use/browser-use)
 
 ---
 
-*本文基于 2026 年 10 月 1 日公开可见的产品文档、学术论文、官方博客整理，不涉及任何未公开架构细节或编造 KPI。*
+*本文基于 2026 年 10 月 1 日公开可见的产品文档、学术论文、官方博客与社区调研整理。数字来源已标注（Cognio 为建模、OSWorld 为基准、雷峰网为媒体横评）；不涉及任何未公开架构细节或编造 KPI。*
