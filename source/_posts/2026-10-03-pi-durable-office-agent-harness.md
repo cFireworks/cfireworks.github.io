@@ -34,7 +34,7 @@ description: 公开脚本只覆盖单进程里先后打开的两个 Harness、�
 | Env 计算 | 真正执行 bash / read / write 的地方 | 可以和 Loop 不同机、不同发布节奏 |
 | 持久工作区与账本 | 目录或卷上的文件，加上 SQLite / 其他 storage | 比上面两者都长；重建计算单元时默认还在 |
 
-Pi Durable 的接口允许第三列以后做成远程 Env：Harness 在一台机器上，工具通过 ExecutionEnv 跑到别处，接口故意留小。提交 `e39da9ba` **没有**实现这个远程侧。`env()` 里返回的是 `new NodeExecutionEnv({ cwd: sandbox.path })`，路径来自会话 Document。注释里写了以后可以换成远程句柄，代码路径没有换成。
+Pi Durable 的接口允许 Env 计算这一层以后做成远程 Env：Harness 在一台机器上，工具通过 ExecutionEnv 跑到别处，接口故意留小。提交 `e39da9ba` **没有**实现这个远程侧。`env()` 里返回的是 `new NodeExecutionEnv({ cwd: sandbox.path })`，路径来自会话 Document。注释里写了以后可以换成远程句柄，代码路径没有换成。
 
 官方示例 [`29-sandbox-per-conversation`](https://github.com/earendil-works/pi/blob/a13d35a742c6ef8462812a28fbe1d8c8b7431c32/packages/durable/test/examples/29-sandbox-per-conversation.ts) 同样是「每个会话一个目录」的示例，不是托管容器环境。本仓库脚本和它同一族：目录映射，外加一份 SQLite 上的受控关闭再打开。
 
@@ -75,7 +75,7 @@ flowchart TB
 
 ## 三、脚本实际做了什么
 
-[`demos/isolation.mjs`](https://github.com/cFireworks/pi-durable-personal-agent/blob/e39da9badfb723b8f0fda91d0407209905c8468f/demos/isolation.mjs) 从头到尾是一个 Node 进程。`worker-1` 与 `worker-2` 是函数 `openLoopWorker()` 的两次调用：第一次 `Harness.open` 同一份 `run/loop.sqlite`，`close()` 之后，**同一个脚本**里再 `open` 一次。没有第二个操作系统进程，没有远程 Env。
+[`demos/isolation.mjs`](https://github.com/cFireworks/pi-durable-personal-agent/blob/e39da9badfb723b8f0fda91d0407209905c8468f/demos/isolation.mjs) 从头到尾是一个 Node 进程。`worker-1` 与 `worker-2` 是函数 `openLoopWorker()` 的两次调用：第一次 `Harness.open` 同一份 `run/loop.sqlite`，正常路径上 `close()` 之后，**同一个脚本**里再 `open` 一次。没有第二个操作系统进程，没有远程 Env。[`demos/isolation.mjs` L277–L287](https://github.com/cFireworks/pi-durable-personal-agent/blob/e39da9badfb723b8f0fda91d0407209905c8468f/demos/isolation.mjs#L277-L287) 的异常路径可能吞掉 `close` 错误，因此「先关闭第一个实例再打开第二个」只限于正常路径，不是每条路径都保证干净关闭。
 
 `package.json` 的 `engines.node` 为 `>=22.19.0`。该提交的 lock 把 `@earendil-works/pi-durable`、`pi-ai`、`chord` 锁在 **1.0.0**（依赖范围写成 `^1.0.0`）。`npm run demo` 走 faux，不需要密钥；`npm run demo:chat` 才读 `PI_DURABLE_CHAT_API_KEY`，走 OpenAI chat-completions，模型 id 写的是 `qwen3.8-flash`。本文不报告新的耗时或 token。
 
@@ -91,7 +91,7 @@ flowchart TB
 
 ### 3.2 受控 close / reopen：烟测，不是故障注入
 
-阶段 2 调用的是 `harness.close()`。faux 分支先等 80 毫秒再关闭。日志字符串写了 “simulating OOM/redeploy”，操作本身不是 `SIGKILL`，也不是一次真实 OOM。chat 分支在循环里看会话上的 `ToolResultEntry` 条数；计数函数取出的是该会话最多 50 条历史，**包含阶段 1 已经完成的工具结果**。因此「条数 ≥ 1」不能证明本次 `crashReq` 的工具已经启动。若 `crash-resume.txt` 在关闭前就已经在磁盘上，脚本会打印 “finished before crash window” 然后照样 `close()`。超时也会关闭。
+阶段 2 调用的是 `harness.close()`。faux 分支先等 80 毫秒再关闭。日志字符串写了 “simulating OOM/redeploy”，操作本身不是 `SIGKILL`，也不是一次真实 OOM。chat 分支在循环里看会话上的 `ToolResultEntry` 条数；计数函数取出的是该会话最多 50 条历史，**包含阶段 1 已经完成的工具结果**。因此「条数 ≥ 1」不能证明本次 `crashReq` 的工具已经启动。若 `crash-resume.txt` 在关闭前就已经在磁盘上，脚本会打印 “finished before crash window” 然后照样 `close()`。超时路径也会调用 `close()`；异常分支可能吞掉 `close` 错误，所以这里的「先关再开」同样只描述正常路径。
 
 阶段 3 在同一进程打开第二个 Harness，调用 `resume()`，然后对会话 A **再次 `submit` 同一条 crash 请求**。若 `crash-resume.txt` 的内容还不是 `RESUMED`，脚本再发一条新的 `submit`（`whenBusy: "steer"`，另一个 `requestId`）。会话 B 的 `failover.txt=WORKER2` 来自重新打开之后的**又一次新提交**，不是原任务自己切到另一个进程。
 
@@ -101,7 +101,7 @@ flowchart TB
 
 | | 含义 | 这份脚本的退出码能否单独证明 |
 |--|------|------------------------------|
-| （a）原任务恢复 | 关闭前已经开始的那次工具调用，在没有新的 `submit` / `steer` 的情况下做完 | 不能。成功路径上允许再提交，也允许关闭前标记已经写好 |
+| （a）原任务恢复 | 关闭前已经开始的那次工具调用，在没有新增准入的输入的情况下做完（同一 `requestId` 返回已有 submission，不算新增准入的输入） | 不能。成功路径上允许再提交，也允许关闭前标记已经写好 |
 | （b）补发之后成功 | 重新打开后，新的 `submit` 或 `steer` 把文件写成目标内容 | 源码允许这条路径走到 `DEMO OK`。没有随仓库附上的运行日志时，不能从绿的退出码判断这次走的是（a）还是（b） |
 
 ```mermaid
@@ -150,7 +150,7 @@ Durable 在这里提供的是存储上的检查点，以及按会话挑选 `cwd`
 3. A+Env 仅在扩缩、权限或发版边界已经是需求时列入候选，不写成本次实验选出的默认架构。
 4. 会话 Document 可以记下沙箱句柄；今天的脚本只存本地 `path`。
 5. `requestId` 的相同 submission id，按「同一会话的提交准入」验收。外部副作用另表：可重放吗、幂等键是什么、结果是否已核对。
-6. 声称「原任务自己恢复」之前，先排除：关闭前文件是否已经写好；历史里的 tool-result 是否来自上一阶段；重新打开后有没有新的 `submit` / `steer`。
+6. 声称「原任务自己恢复」之前，先排除：关闭前文件是否已经写好；历史里的 tool-result 是否来自上一阶段；重新打开后有没有新增准入的输入（同一 `requestId` 返回已有 submission，不算）。
 7. `close()` 只做烟测。`SIGKILL`、OOM、第二进程抢租约，各自要单独的实验。
 8. 两个 cwd 的同名文件用来做映射回归，不用来宣称安全沙箱。
 9. 网关路径按第 5 节记笔记；UI 若收到 thinking / `reasoning_content`，不要把它当成给用户看的正文。这是渲染约定，不是本次 demo 的输出。
