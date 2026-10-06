@@ -29,11 +29,11 @@ description: SEP-2640 已在 2026-09-13 合并为 Final。手写的 stdio 服务
 
 服务器在 `server/discover` 的 `capabilities.extensions` 里声明这个扩展。声明了，就必须实现 `skills/list` 和 `skills/get`，并且声明 `resources`。`directoryRead: true` 时才必须实现 `resources/directory/read`；客户端不许对没开这个开关的服务器去调它。技能文件走普通的 `resources/read`。`skill://` 是建议用的 scheme，主机不能靠 scheme 判断一个资源是不是技能。别的 scheme 也可以。技能目录在 URI 里的那一段，最后一截必须等于 frontmatter 的 `name`。`skill://refund-check/SKILL.md` 里这一截是 `refund-check`，不是文件名 `SKILL.md`。
 
-技能格式交给 [Agent Skills 规范](https://agentskills.io/specification)：目录根上有 `SKILL.md`，frontmatter 至少有 `name` 和 `description`，`name` 和目录名一致。`skills/list` 允许为空或只返回一部分。空列表的意思是这一页没列出来，已知 URI 时仍然走 `skills/get`。找不到则返回 JSON-RPC `-32602`。
+技能格式交给 [Agent Skills 规范](https://agentskills.io/specification)：目录根上有 `SKILL.md`，frontmatter 至少有 `name` 和 `description`，`name` 和目录名一致。`skills/list` 允许为空或只返回一部分。空列表只说明这次没有给出条目，已知 URI 时仍然走 `skills/get`。找不到则返回 JSON-RPC `-32602`。
 
 `resources` 要么是完整文件清单，每项带 `uri`、`digest`、`size`，要么是字符串 `"dynamic"`。清单是主机核对的对象，也是用户批准所绑定的对象。读到的字节长度或 SHA-256 对不上，或者 frontmatter 逐字段对不上，主机不得使用这份内容。正在按这份技能行动时，清单外的文件同样按核对失败处理。要用新文件，先 `skills/get`。集合变了，多一个、少一个或某一条摘要变了，原先持久化的批准作废，重新问人。`"dynamic"` 没有可绑定的集合。主机可以拒绝加载，也不许拿一次旧批准去覆盖服务器眼下给出的正文。
 
-还有几条和摘要无关。进模型上下文时带上服务器身份，这个身份是主机自己起的标签，不是 `serverInfo.name`。远程技能不能悄悄盖住同名的本机技能。`allowed-tools` 这种会放宽权限的字段，MCP 来源上默认忽略，除非用户对这一份技能单独批准。嵌套技能要另一次同意。单份技能的上限是 512 个文件、合计 16,777,216 字节。这是规范写给主机的接受下限，不是我测出来的容量。
+还有几条和摘要无关。进模型上下文时带上服务器身份，这个身份是主机自己起的标签，不是 `serverInfo.name`。远程技能不能悄悄盖住同名的本机技能。`allowed-tools` 这种会放宽权限的字段，MCP 来源上默认忽略，除非用户对这一份技能单独批准。嵌套技能要另一次同意。单份技能的上限是 512 个文件、合计 16,777,216 字节。规范要求符合规范的主机至少要能接受到这个上限，更大的可以拒绝。这不是我测出来的容量。
 
 ```mermaid
 sequenceDiagram
