@@ -4,6 +4,8 @@ db.json
 *.log
 node_modules/
 public/
+__pycache__/
+*.pyc
 .deploy*/
 _multiconfig.yml
 
