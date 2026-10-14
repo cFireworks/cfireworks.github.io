@@ -1,0 +1,17 @@
+# 精简摘录。出处：AWS Open Source Blog，2026-10-07，
+# Fernando Dingler，Introducing Strands Box，Configuring a Box。
+# 原文还有 agent 命令、工作区和模型出站。这里只留下和时序演示有关的名字、策略路径、AWS 与 Slack 出站。
+# 这不是一份能在 macOS 上直接 box run 的完整配置。
+
+name = "oncall"
+box_dir = "/Users/me/.box/oncall"
+policy = "policy.dw"
+
+[egress.aws]
+destinations = ["*.us-west-2.amazonaws.com"]
+secret.ref = "aws://oncall"
+
+[egress.slack]
+destinations = ["slack.com"]
+secret.ref = "env://SLACK_BOT_TOKEN"
+secret.inject = "always"
