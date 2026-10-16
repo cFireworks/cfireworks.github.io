@@ -1,0 +1,12 @@
+# Harbor 文档示例的形状：基线 public，做题时 allowlist，判分时 no-network。
+# agent.setup() 用基线，不用 [agent]。这里不写 setup 段。
+
+[environment]
+network_mode = "public"
+
+[agent]
+network_mode = "allowlist"
+allowed_hosts = ["pypi.org", "api.openai.com"]
+
+[verifier]
+network_mode = "no-network"

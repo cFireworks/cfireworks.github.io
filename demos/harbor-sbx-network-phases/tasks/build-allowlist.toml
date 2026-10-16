@@ -1,0 +1,5 @@
+# 基线已经是短名单。脚本把镜像构建算在这条基线上。
+
+[environment]
+network_mode = "allowlist"
+allowed_hosts = ["api.openai.com"]
