@@ -1,0 +1,47 @@
+{
+  "server": "generic-search-execute",
+  "note": "Anti-pattern stand-in: two generic tools instead of named operations.",
+  "tools": [
+    {
+      "name": "search",
+      "title": "Search operations",
+      "description": "Find an operation by words.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string"
+          }
+        },
+        "required": ["query"],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false
+      }
+    },
+    {
+      "name": "execute",
+      "title": "Execute operation",
+      "description": "Run a previously found operation.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "arguments": {
+            "type": "object"
+          }
+        },
+        "required": ["name"],
+        "additionalProperties": false
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true
+      }
+    }
+  ]
+}
