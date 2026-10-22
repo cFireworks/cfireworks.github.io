@@ -1,0 +1,11 @@
+{
+  "mcp": {
+    "servers": {
+      "memory": {
+        "command": "python3",
+        "args": ["-m", "demo_memory"],
+        "env": {}
+      }
+    }
+  }
+}
