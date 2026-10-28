@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "notes": {
+      "command": "python3",
+      "args": ["-m", "demo_notes"]
+    },
+    "shared": {
+      "type": "http",
+      "url": "https://mcp.example.com/v1"
+    },
+    "typo": {
+      "url": "https://mcp.example.com/forgot-type"
+    }
+  }
+}
