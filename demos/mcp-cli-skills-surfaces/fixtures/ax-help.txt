@@ -1,0 +1,15 @@
+ax — local stand-in, not the Arize CLI
+
+usage:
+  ax --version
+  ax spaces list -o json
+  ax experiments list --project <id> --output json
+  ax experiments compare --base <id> --head <id>
+  ax evaluators create --name <name>
+
+groups in this stand-in: spaces, experiments, evaluators
+
+example:
+  ax experiments list --project demo --output json
+
+this file does not shell out and does not accept a token
