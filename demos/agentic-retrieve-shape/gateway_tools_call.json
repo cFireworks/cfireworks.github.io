@@ -1,0 +1,18 @@
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/call",
+  "params": {
+    "name": "managed-kb___AgenticRetrieveStream",
+    "arguments": {
+      "messages": [
+        {
+          "role": "user",
+          "content": {
+            "text": "What risks does the Octank 10-K discuss?"
+          }
+        }
+      ]
+    }
+  }
+}

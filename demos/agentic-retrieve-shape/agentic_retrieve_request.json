@@ -1,0 +1,32 @@
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": {
+        "text": "Which risks in the synthetic Octank 10-K overlap the tornado seasons in the CRS report?"
+      }
+    }
+  ],
+  "retrievers": [
+    {
+      "description": "Synthetic Octank Financial 10-K. Fictional company, not a real filing.",
+      "configuration": {
+        "knowledgeBase": {
+          "knowledgeBaseId": "KB_FINANCIAL_PLACEHOLDER"
+        }
+      }
+    },
+    {
+      "description": "U.S. CRS report IF12695 on tornadoes. Public-domain government work.",
+      "configuration": {
+        "knowledgeBase": {
+          "knowledgeBaseId": "KB_WEATHER_PLACEHOLDER"
+        }
+      }
+    }
+  ],
+  "agenticRetrieveConfiguration": {
+    "foundationModelType": "MANAGED",
+    "rerankingModelType": "MANAGED"
+  }
+}
