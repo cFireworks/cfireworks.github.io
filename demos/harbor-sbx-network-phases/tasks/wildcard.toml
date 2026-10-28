@@ -1,0 +1,3 @@
+[environment]
+network_mode = "allowlist"
+allowed_hosts = ["*.pypi.org"]

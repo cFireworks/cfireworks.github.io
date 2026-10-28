@@ -1,0 +1,8 @@
+[environment]
+network_mode = "public"
+
+[agent]
+network_mode = "no-network"
+
+[verifier]
+network_mode = "no-network"
