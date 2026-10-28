@@ -1,0 +1,44 @@
+// 精简摘录。出处：AWS Open Source Blog，2026-10-07，
+// Fernando Dingler，Introducing Strands Box。
+// allow_https_to_aws 来自 Configuring a Box。
+// allow_slack_post 与 rate_limit_slack_posts 来自 Temporal Policies。
+// 不是完整策略，也不交给 Dogwood Local Engine 求值。
+
+@id("allow_https_to_aws")
+permit (principal, action == Box::Action::"http:request", resource)
+when {
+  context.input.host like "*.us-west-2.amazonaws.com" &&
+  context.input.port == 443
+};
+
+@id("allow_slack_post")
+permit (principal, action == Box::Action::"http:request", resource)
+when {
+  context.input.host == "slack.com" &&
+  context.input.port == 443 &&
+  context.input.method == "POST" &&
+  context.input.path == "/api/chat.postMessage"
+};
+
+@id("rate_limit_slack_posts")
+@description("Slack posts are capped at three every 10 minutes. Wait before you post again.")
+forbid (principal, action == Box::Action::"http:request", resource)
+when {
+  context.input.host == "slack.com" &&
+  context.input.port == 443 &&
+  context.input.method == "POST" &&
+  context.input.path == "/api/chat.postMessage"
+}
+when temporal {
+  (count for (t: Timepoint). where (
+      formerly within 10m (
+          Box::Action::"http:request"::response{
+              input.host: "slack.com",
+              input.port: 443,
+              input.method: "POST",
+              input.path: "/api/chat.postMessage",
+              output.status: 200
+          } && tp(t)
+      )
+  )) >= 3
+};
