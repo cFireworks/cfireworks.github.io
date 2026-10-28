@@ -8,3 +8,24 @@ mermaid:
   theme:
     light: default
     dark: dark
+
+# 数学公式（NexT 8.29）
+# 文档: https://theme-next.js.org/docs/third-party-services/math-equations
+# 主题 KaTeX 只注入与 _vendors.yml 相同的 katex@0.16.9 CSS。
+# 公式 HTML 由 scripts/math-filter.js 在 Markdown 之前生成，避免 marked 吃掉反斜杠。
+# 不打开 mathjax：NexT 的 MathJax 前端写死单美元定界符，会误伤正文里的价格。
+math:
+  # 不依赖每篇文章 front-matter 的 mathjax: true，全站加载 KaTeX CSS。
+  every_page: true
+
+  mathjax:
+    enable: false
+    # Available values: none | ams | all
+    tags: none
+    # Available values: overflow | scroll | scale | truncate | linebreak
+    display_overflow: scroll
+
+  katex:
+    enable: true
+    # See: https://github.com/KaTeX/KaTeX/tree/master/contrib/copy-tex
+    copy_tex: false
