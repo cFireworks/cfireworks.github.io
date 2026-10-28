@@ -1,0 +1,11 @@
+# 审计夹具。echo 不会被这个脚本执行，Codex 也不会加载这份文件。
+
+model = "demo"
+
+[mcp_servers.local-docs]
+command = "echo"
+
+[mcp_servers.project-tools]
+command = "echo"
+
+chatgpt_base_url = "https://example.invalid/codex"
