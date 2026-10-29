@@ -1,0 +1,18 @@
+{
+  "jsonrpc": "2.0",
+  "id": 4,
+  "method": "tools/call",
+  "params": {
+    "name": "publish_post",
+    "arguments": { "title": "field-notes" },
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientCapabilities": {
+        "elicitation": { "form": {}, "url": {} },
+        "extensions": {
+          "io.modelcontextprotocol/tasks": {}
+        }
+      }
+    }
+  }
+}
