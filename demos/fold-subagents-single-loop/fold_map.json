@@ -1,0 +1,92 @@
+[
+  {
+    "file": "prompts/orders.md",
+    "line": "你是青石家居的订单专员。",
+    "bucket": "delete_persona",
+    "where": "删掉。语气归主系统提示"
+  },
+  {
+    "file": "prompts/orders.md",
+    "line": "先热情地跟用户打招呼。",
+    "bucket": "delete_persona",
+    "where": "删掉。语气归主系统提示"
+  },
+  {
+    "file": "prompts/orders.md",
+    "line": "请一步一步思考。",
+    "bucket": "delete_old_model",
+    "where": "删掉。写给旧模型的喊话"
+  },
+  {
+    "file": "prompts/orders.md",
+    "line": "查到订单后，用两句话回复商品名和状态。",
+    "bucket": "skill",
+    "where": "技能正文：流程"
+  },
+  {
+    "file": "prompts/orders.md",
+    "line": "不要猜测送达日期，那是物流专员的事。",
+    "bucket": "delete_other_agent",
+    "where": "删掉。它在指挥另一个子 Agent，折进同一上下文后不再成立"
+  },
+  {
+    "file": "prompts/shipping.md",
+    "line": "你是物流专员，语气要俏皮。",
+    "bucket": "delete_persona",
+    "where": "删掉。语气归主系统提示"
+  },
+  {
+    "file": "prompts/shipping.md",
+    "line": "必须先拿到运单号，摘要里没有就回答还不能查。",
+    "bucket": "tool",
+    "where": "写进 track_shipment，缺运单号就拒绝并返回可执行的说明"
+  },
+  {
+    "file": "prompts/shipping.md",
+    "line": "回报承运商、运输状态、预计送达日和最后一条轨迹。",
+    "bucket": "skill",
+    "where": "技能正文：流程"
+  },
+  {
+    "file": "prompts/shipping.md",
+    "line": "退货窗口是签收后 30 天。",
+    "bucket": "reference",
+    "where": "事实。放进技能参考或查询工具，不要糊进系统提示"
+  },
+  {
+    "file": "prompts/shipping.md",
+    "line": "记住你一定要调用工具。",
+    "bucket": "delete_old_model",
+    "where": "删掉。写给旧模型的喊话"
+  },
+  {
+    "file": "prompts/router.md",
+    "line": "你绝不能自己回答用户，必须派给专科。",
+    "bucket": "delete_router_rule",
+    "where": "第一次折的时候删掉。路由器从此可以自己回答、自己调工具"
+  },
+  {
+    "file": "prompts/router.md",
+    "line": "请一步一步思考再选择专科。",
+    "bucket": "delete_old_model",
+    "where": "删掉。写给旧模型的喊话"
+  },
+  {
+    "file": "prompts/router.md",
+    "line": "订单组：问到货时间时先派物流。",
+    "bucket": "delete_router_rule",
+    "where": "删掉。和下一行打架，折掉路由之后这条顺序规则没有主人"
+  },
+  {
+    "file": "prompts/router.md",
+    "line": "物流组：查轨迹之前必须先派订单。",
+    "bucket": "delete_router_rule",
+    "where": "删掉。硬前提改由 track_shipment 检查"
+  },
+  {
+    "file": "prompts/router.md",
+    "line": "品牌组：每句回复都以「还有什么可以帮您」结尾。",
+    "bucket": "delete_persona",
+    "where": "删掉。语气归主系统提示，先问品牌还要不要这句"
+  }
+]
