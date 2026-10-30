@@ -1,0 +1,9 @@
+{
+  "TRK-20481": {
+    "tracking_id": "TRK-20481",
+    "carrier": "北线",
+    "state": "in_transit",
+    "eta": "2026-11-02",
+    "last_event": "离开杭州转运中心"
+  }
+}
