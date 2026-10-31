@@ -1,0 +1,159 @@
+{
+  "base": {
+    "plan": "enterprise",
+    "unified_on": true,
+    "chat_on": true,
+    "cloud_code_exec_on": true,
+    "compliance": null,
+    "needs_code": false,
+    "needs_files": false,
+    "needs_network": false,
+    "needs_local_folder": false,
+    "needs_local_mcp": false,
+    "needs_computer_use": false,
+    "desktop_online": true,
+    "remote_control": true,
+    "started_from": "web",
+    "egress": "off",
+    "local_mcp_mdm_off": false
+  },
+  "cases": [
+    {
+      "id": "qa",
+      "patch": {},
+      "expect": {"route": "stay_chat", "notes": []}
+    },
+    {
+      "id": "deck",
+      "patch": {"needs_files": true},
+      "expect": {"route": "escalate_cloud", "notes": []}
+    },
+    {
+      "id": "code-no-net",
+      "patch": {"needs_code": true},
+      "expect": {"route": "escalate_cloud", "notes": []}
+    },
+    {
+      "id": "code-egress-off",
+      "patch": {"needs_code": true, "needs_network": true},
+      "expect": {"route": "escalate_cloud", "notes": ["egress_off"]}
+    },
+    {
+      "id": "local-mcp",
+      "patch": {"needs_local_mcp": true},
+      "expect": {"route": "need_local_link", "notes": ["local_mcp_not_in_cloud_vm"]}
+    },
+    {
+      "id": "local-mcp-offline",
+      "patch": {"needs_local_mcp": true, "desktop_online": false},
+      "expect": {"route": "blocked_desktop", "notes": []}
+    },
+    {
+      "id": "local-mcp-mdm",
+      "patch": {"needs_local_mcp": true, "local_mcp_mdm_off": true},
+      "expect": {"route": "blocked_local_mcp", "notes": []}
+    },
+    {
+      "id": "code-and-local-mcp",
+      "patch": {"needs_code": true, "needs_local_mcp": true},
+      "expect": {"route": "need_local_link", "notes": ["local_mcp_not_in_cloud_vm"]}
+    },
+    {
+      "id": "zdr",
+      "patch": {"compliance": "zdr"},
+      "expect": {"route": "keep_split", "notes": []}
+    },
+    {
+      "id": "hipaa",
+      "patch": {"compliance": "hipaa"},
+      "expect": {"route": "keep_split", "notes": []}
+    },
+    {
+      "id": "cmek",
+      "patch": {"compliance": "cmek"},
+      "expect": {"route": "keep_split", "notes": []}
+    },
+    {
+      "id": "unified-off",
+      "patch": {"unified_on": false},
+      "expect": {"route": "keep_split", "notes": []}
+    },
+    {
+      "id": "no-cloud-exec",
+      "patch": {"cloud_code_exec_on": false},
+      "expect": {"route": "blocked_capability", "notes": []}
+    },
+    {
+      "id": "no-chat",
+      "patch": {"chat_on": false},
+      "expect": {"route": "blocked_capability", "notes": []}
+    },
+    {
+      "id": "pro-waiting",
+      "patch": {
+        "plan": "pro",
+        "unified_on": false,
+        "needs_files": true,
+        "egress": null
+      },
+      "expect": {"route": "keep_split", "notes": []}
+    },
+    {
+      "id": "pro-deck",
+      "patch": {"plan": "pro", "needs_files": true, "egress": null},
+      "expect": {"route": "escalate_cloud", "notes": []}
+    },
+    {
+      "id": "ultra-qa",
+      "patch": {"plan": "ultra", "egress": null},
+      "expect": {"route": "stay_chat", "notes": []}
+    },
+    {
+      "id": "computer-use-pro",
+      "patch": {
+        "plan": "pro",
+        "needs_computer_use": true,
+        "started_from": "desktop",
+        "egress": null
+      },
+      "expect": {"route": "need_local_link", "notes": []}
+    },
+    {
+      "id": "computer-use-enterprise",
+      "patch": {"needs_computer_use": true},
+      "expect": {"route": "computer_use_unlisted", "notes": []}
+    },
+    {
+      "id": "web-folder-no-remote",
+      "patch": {
+        "needs_local_folder": true,
+        "remote_control": false,
+        "started_from": "web"
+      },
+      "expect": {"route": "blocked_remote", "notes": []}
+    },
+    {
+      "id": "desktop-folder",
+      "patch": {
+        "needs_local_folder": true,
+        "remote_control": false,
+        "started_from": "desktop"
+      },
+      "expect": {"route": "need_local_link", "notes": []}
+    },
+    {
+      "id": "team-off",
+      "patch": {"plan": "team", "unified_on": false, "egress": null},
+      "expect": {"route": "keep_split", "notes": []}
+    },
+    {
+      "id": "team-files",
+      "patch": {
+        "plan": "team",
+        "needs_files": true,
+        "egress": null
+      },
+      "expect": {"route": "escalate_cloud", "notes": []}
+    }
+  ]
+}
